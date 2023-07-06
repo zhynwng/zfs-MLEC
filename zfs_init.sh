@@ -8,7 +8,6 @@ sudo apt install build-essential autoconf automake libtool gawk alien fakeroot \
     libcurl4-openssl-dev debhelper-compat dh-python po-debconf python3-all-dev \
     python3-sphinx
 
-git checkout zfs-2.1-release
 sh autogen.sh
 ./configure
 make -s -j$(nproc)
@@ -21,11 +20,8 @@ sudo systemctl stop zfs-send
 sudo make install
 sudo ldconfig
 sudo depmod
+sudo modprobe zfs
+
 sudo ./scripts/zfs.sh 
 sudo systemctl enable zfs.target zfs-import.target \
     zfs-mount.service zfs-import-cache.service zfs-import-scan.service
-
-#-----------------------------Packages for tests--------------------------------
-
-sudo apt install ksh bc bzip2 fio acl sysstat mdadm lsscsi parted attr dbench \
-    nfs-kernel-server samba rng-tools pax linux-tools-common selinux-utils quota
