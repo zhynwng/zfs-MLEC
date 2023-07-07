@@ -11,3 +11,10 @@ sudo dd if=/dev/zero of=/scratch/2.img bs=4M count=1 2>/dev/null
 sudo zpool scrub zpool
 sudo truncate -s 2G /scratch/new.img
 sudo zpool replace zpool /scratch/2.img /scratch/new.img
+
+# change ownership 
+sudo chown cc:cc /zpool/data
+
+# check the log
+cd /proc/spl/kstat/zfs 
+sudo chmod 755 dbgmsg 
