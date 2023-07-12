@@ -2,7 +2,6 @@
 
 sudo modprobe -r zfs
 sudo make uninstall
-sudo make clean
 sudo ldconfig
 sudo depmod
 sudo rm -rf /usr/local/etc/zfs

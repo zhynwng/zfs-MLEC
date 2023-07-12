@@ -1,5 +1,7 @@
 # ligthweight script that install zfs
 
+# sh autogen.sh
+#./configure
 make -s -j$(nproc)
 
 sudo zfs unmount -a
