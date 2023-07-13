@@ -30,7 +30,6 @@ dmu_t      data management unit here
 
 
 vdev_alloc()     in vdev.c , allocate a vdev struct, associate operations
-
 This is called by spa_config_parse() in spa.c. 
 
 vdev_open()      open the corresponding vdev 
@@ -51,3 +50,7 @@ mirror  call time: 2157
 zio_io_start : 1167
 vd = Null 438
 replacing 552 
+
+
+Questions: what happens when we have 3 leaf vdevs in a mirror? 
+

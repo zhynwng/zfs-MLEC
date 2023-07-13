@@ -610,6 +610,7 @@ extern vdev_ops_t vdev_missing_ops;
 extern vdev_ops_t vdev_hole_ops;
 extern vdev_ops_t vdev_spare_ops;
 extern vdev_ops_t vdev_indirect_ops;
+extern vdev_ops_t vdev_my_mirror_ops;
 
 /*
  * Common size functions

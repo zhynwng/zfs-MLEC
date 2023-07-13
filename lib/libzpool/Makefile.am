@@ -132,6 +132,7 @@ KERNEL_C = \
 	vdev_initialize.c \
 	vdev_label.c \
 	vdev_mirror.c \
+	vdev_my_mirror.c \
 	vdev_missing.c \
 	vdev_queue.c \
 	vdev_raidz.c \

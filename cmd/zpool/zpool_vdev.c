@@ -1251,6 +1251,12 @@ is_grouping(const char *type, int *mindev, int *maxdev)
 		return (VDEV_TYPE_MIRROR);
 	}
 
+	if (strcmp(type, "my_mirror") == 0 ) {
+		if (mindev != NULL)
+			*mindev = 2;
+		return (VDEV_TYPE_MY_MIRROR);
+	}
+	
 	if (strcmp(type, "spare") == 0) {
 		if (mindev != NULL)
 			*mindev = 1;
