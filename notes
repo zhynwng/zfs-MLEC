@@ -54,3 +54,18 @@ replacing 552
 
 Questions: what happens when we have 3 leaf vdevs in a mirror? 
 
+
+
+Create workflow:
+
+zpool_do_create()     
+
+zpool_create()     This swithed to zfs kernel module
+
+zfs_ioc_pool_create()   
+
+spa_create()
+
+spa_config_parse()     Here the vdev tree is allocated recursively
+
+vdev_alloc()          We do individual allocation here

@@ -236,6 +236,7 @@ static vdev_ops_t *vdev_ops_table[] = {
 	&vdev_missing_ops,
 	&vdev_hole_ops,
 	&vdev_indirect_ops,
+	&vdev_my_mirror_ops,
 	NULL
 };
 
@@ -246,6 +247,8 @@ static vdev_ops_t *
 vdev_getops(const char *type)
 {
 	vdev_ops_t *ops, **opspp;
+
+	/* zfs_dbgmsg("type: %s", vdev_my_mirror_ops.vdev_op_type); */
 
 	for (opspp = vdev_ops_table; (ops = *opspp) != NULL; opspp++)
 		if (strcmp(ops->vdev_op_type, type) == 0)
@@ -707,8 +710,12 @@ vdev_alloc(spa_t *spa, vdev_t **vdp, nvlist_t *nv, vdev_t *parent, uint_t id,
 	if (nvlist_lookup_string(nv, ZPOOL_CONFIG_TYPE, &type) != 0)
 		return (SET_ERROR(EINVAL));
 
+	zfs_dbgmsg("type: %s", type);
+
 	if ((ops = vdev_getops(type)) == NULL)
 		return (SET_ERROR(EINVAL));
+
+	zfs_dbgmsg("get ops sucessful");
 
 	/*
 	 * If this is a load, get the vdev guid from the nvlist.
