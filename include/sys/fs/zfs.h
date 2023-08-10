@@ -774,6 +774,7 @@ typedef struct zpool_load_policy {
 #define VDEV_TYPE_MY_MIRROR     "my_mirror"
 #define	VDEV_TYPE_REPLACING		"replacing"
 #define	VDEV_TYPE_RAIDZ			"raidz"
+#define VDEV_TYPE_MY_RAIDZ		"my_raidz"
 #define	VDEV_TYPE_DRAID			"draid"
 #define	VDEV_TYPE_DRAID_SPARE		"dspare"
 #define	VDEV_TYPE_DISK			"disk"

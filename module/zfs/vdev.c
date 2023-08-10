@@ -237,6 +237,7 @@ static vdev_ops_t *vdev_ops_table[] = {
 	&vdev_hole_ops,
 	&vdev_indirect_ops,
 	&vdev_my_mirror_ops,
+	&vdev_my_raidz_ops,
 	NULL
 };
 
@@ -710,7 +711,6 @@ vdev_alloc(spa_t *spa, vdev_t **vdp, nvlist_t *nv, vdev_t *parent, uint_t id,
 	if (nvlist_lookup_string(nv, ZPOOL_CONFIG_TYPE, &type) != 0)
 		return (SET_ERROR(EINVAL));
 
-	zfs_dbgmsg("type: %s", type);
 
 	if ((ops = vdev_getops(type)) == NULL)
 		return (SET_ERROR(EINVAL));
@@ -741,12 +741,15 @@ vdev_alloc(spa_t *spa, vdev_t **vdp, nvlist_t *nv, vdev_t *parent, uint_t id,
 			return (SET_ERROR(EINVAL));
 	}
 
+	zfs_dbgmsg("<2>");
+	zfs_dbgmsg("%s", ops->vdev_op_type);
 	/*
 	 * The first allocated vdev must be of type 'root'.
 	 */
 	if (ops != &vdev_root_ops && spa->spa_root_vdev == NULL)
 		return (SET_ERROR(EINVAL));
 
+	zfs_dbgmsg("non-root");
 	/*
 	 * Determine whether we're a log vdev.
 	 */
@@ -758,6 +761,7 @@ vdev_alloc(spa_t *spa, vdev_t **vdp, nvlist_t *nv, vdev_t *parent, uint_t id,
 	if (ops == &vdev_hole_ops && spa_version(spa) < SPA_VERSION_HOLES)
 		return (SET_ERROR(ENOTSUP));
 
+	zfs_dbgmsg("next step");
 	if (top_level && alloctype == VDEV_ALLOC_ADD) {
 		char *bias;
 
@@ -785,6 +789,7 @@ vdev_alloc(spa_t *spa, vdev_t **vdp, nvlist_t *nv, vdev_t *parent, uint_t id,
 		}
 	}
 
+	zfs_dbgmsg("<2.5>");
 	/*
 	 * Initialize the vdev specific data.  This is done before calling
 	 * vdev_alloc_common() since it may fail and this simplifies the
@@ -797,7 +802,7 @@ vdev_alloc(spa_t *spa, vdev_t **vdp, nvlist_t *nv, vdev_t *parent, uint_t id,
 			return (rc);
 		}
 	}
-
+	zfs_dbgmsg("<3>");
 	vd = vdev_alloc_common(spa, id, guid, ops);
 	vd->vdev_tsd = tsd;
 	vd->vdev_islog = islog;
@@ -833,6 +838,7 @@ vdev_alloc(spa_t *spa, vdev_t **vdp, nvlist_t *nv, vdev_t *parent, uint_t id,
 	if (nvlist_lookup_string(nv, ZPOOL_CONFIG_FRU, &vd->vdev_fru) == 0)
 		vd->vdev_fru = spa_strdup(vd->vdev_fru);
 
+	zfs_dbgmsg("<4>");
 	/*
 	 * Set the whole_disk property.  If it's not specified, leave the value
 	 * as -1.
@@ -906,6 +912,7 @@ vdev_alloc(spa_t *spa, vdev_t **vdp, nvlist_t *nv, vdev_t *parent, uint_t id,
 		ASSERT0(vd->vdev_leaf_zap);
 	}
 
+	zfs_dbgmsg("<5>");
 	/*
 	 * If we're a leaf vdev, try to load the DTL object and other state.
 	 */
