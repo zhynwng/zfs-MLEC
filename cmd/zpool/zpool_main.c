@@ -106,6 +106,7 @@ static int zpool_do_split(int, char **);
 
 static int zpool_do_initialize(int, char **);
 static int zpool_do_scrub(int, char **);
+static int zpool_do_easy_scrub(int, char **);
 static int zpool_do_resilver(int, char **);
 static int zpool_do_trim(int, char **);
 
@@ -168,6 +169,7 @@ typedef enum {
 	HELP_REMOVE,
 	HELP_INITIALIZE,
 	HELP_SCRUB,
+	HELP_EASYSCRUB,
 	HELP_RESILVER,
 	HELP_TRIM,
 	HELP_STATUS,
@@ -308,6 +310,7 @@ static zpool_command_t command_table[] = {
 	{ "initialize",	zpool_do_initialize,	HELP_INITIALIZE		},
 	{ "resilver",	zpool_do_resilver,	HELP_RESILVER		},
 	{ "scrub",	zpool_do_scrub,		HELP_SCRUB		},
+	{ "easyscrub", zpool_do_easy_scrub, HELP_EASYSCRUB},
 	{ "trim",	zpool_do_trim,		HELP_TRIM		},
 	{ NULL },
 	{ "import",	zpool_do_import,	HELP_IMPORT		},
@@ -396,6 +399,8 @@ get_usage(zpool_help_t idx)
 		    "[<device> ...]\n"));
 	case HELP_SCRUB:
 		return (gettext("\tscrub [-s | -p] [-w] <pool> ...\n"));
+	case HELP_EASYSCRUB:
+		return (gettext("\teasyscrub <pool> ...\n"));
 	case HELP_RESILVER:
 		return (gettext("\tresilver <pool> ...\n"));
 	case HELP_TRIM:
@@ -7282,6 +7287,16 @@ scrub_callback(zpool_handle_t *zhp, void *data)
 	return (err != 0);
 }
 
+static int 
+easy_scrub_callback(zpool_handle_t *zhp, void *data) 
+{
+	scrub_cbdata_t *cb = data;
+	int err;
+
+	err = zpool_easy_scan(zhp, cb->cb_type, cb->cb_scrub_cmd);
+	return (err != 0);
+}
+
 static int
 wait_callback(zpool_handle_t *zhp, void *data)
 {
@@ -7360,6 +7375,24 @@ zpool_do_scrub(int argc, char **argv)
 	return (error);
 }
 
+/* Easy scrub for MLEC research */
+int
+zpool_do_easy_scrub(int argc, char **argv)
+{
+	scrub_cbdata_t cb;
+	int error;
+
+	cb.cb_type = POOL_SCAN_SCRUB;
+	cb.cb_scrub_cmd = POOL_SCRUB_NORMAL;
+	
+	argc -= optind;
+	argv += optind;
+
+	error = for_each_pool(argc, argv, B_TRUE, NULL, B_FALSE,
+	    easy_scrub_callback, &cb);
+	
+	return (error);
+}
 /*
  * zpool resilver <pool> ...
  *

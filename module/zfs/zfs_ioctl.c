@@ -1695,6 +1695,24 @@ zfs_ioc_pool_scan(zfs_cmd_t *zc)
 	return (error);
 }
 
+static int 
+zfs_ioc_pool_easy_scan(zfs_cmd_t *zc)
+{
+	spa_t *spa;
+	int error;
+
+	if (zc->zc_flags >= POOL_SCRUB_FLAGS_END)
+		return (SET_ERROR(EINVAL));
+
+	if ((error = spa_open(zc->zc_name, &spa, FTAG)) != 0)
+		return (error);
+
+	error = spa_easy_scan(spa, zc->zc_cookie);
+	spa_close(spa, FTAG);
+
+	return (error);
+}
+
 static int
 zfs_ioc_pool_freeze(zfs_cmd_t *zc)
 {
@@ -7136,6 +7154,8 @@ zfs_ioctl_init(void)
 	    zfs_secpolicy_config, B_TRUE, POOL_CHECK_NONE);
 	zfs_ioctl_register_pool_modify(ZFS_IOC_POOL_SCAN,
 	    zfs_ioc_pool_scan);
+	zfs_ioctl_register_pool_modify(ZFS_IOC_POOL_EASY_SCAN,
+	    zfs_ioc_pool_easy_scan);	
 	zfs_ioctl_register_pool_modify(ZFS_IOC_POOL_UPGRADE,
 	    zfs_ioc_pool_upgrade);
 	zfs_ioctl_register_pool_modify(ZFS_IOC_VDEV_ADD,

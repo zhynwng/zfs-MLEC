@@ -2268,11 +2268,11 @@ vdev_validate(vdev_t *vd)
 		txg = spa_last_synced_txg(spa);
 
 	if ((label = vdev_label_read_config(vd, txg)) == NULL) {
-		vdev_set_state(vd, B_FALSE, VDEV_STATE_CANT_OPEN,
-		    VDEV_AUX_BAD_LABEL);
+		//vdev_set_state(vd, B_FALSE, VDEV_STATE_CANT_OPEN,
+		    //VDEV_AUX_BAD_LABEL);
 		vdev_dbgmsg(vd, "vdev_validate: failed reading config for "
 		    "txg %llu", (u_longlong_t)txg);
-		return (0);
+		return (77);
 	}
 
 	/*
@@ -2621,10 +2621,11 @@ vdev_rele(vdev_t *vd)
  * on the spa_config_lock.  Instead we only obtain the leaf's physical size.
  * If the leaf has never been opened then open it, as usual.
  */
-void
+int
 vdev_reopen(vdev_t *vd)
 {
 	spa_t *spa = vd->vdev_spa;
+	int err = 0;
 
 	ASSERT(spa_config_held(spa, SCL_STATE_ALL, RW_WRITER) == SCL_STATE_ALL);
 
@@ -2656,7 +2657,7 @@ vdev_reopen(vdev_t *vd)
 			spa_async_request(spa, SPA_ASYNC_L2CACHE_TRIM);
 		}
 	} else {
-		(void) vdev_validate(vd);
+		err = vdev_validate(vd);
 	}
 
 	/*
@@ -2674,6 +2675,9 @@ vdev_reopen(vdev_t *vd)
 	 * Reassess parent vdev's health.
 	 */
 	vdev_propagate_state(vd);
+		
+	zfs_dbgmsg("%d", err);
+	return err;
 }
 
 int

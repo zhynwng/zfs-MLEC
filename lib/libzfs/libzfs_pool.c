@@ -2555,6 +2555,35 @@ zpool_scan(zpool_handle_t *zhp, pool_scan_func_t func, pool_scrub_cmd_t cmd)
 	}
 }
 
+/* Easy Zpool scan for easy scrub. */
+int
+zpool_easy_scan(zpool_handle_t *zhp, pool_scan_func_t func, pool_scrub_cmd_t cmd)
+{
+	zfs_cmd_t zc = {"\0"};
+	libzfs_handle_t *hdl = zhp->zpool_hdl;
+	char msg[1024];
+
+	(void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
+	zc.zc_cookie = func;
+	zc.zc_flags = cmd;
+
+	if (zfs_ioctl(hdl, ZFS_IOC_POOL_EASY_SCAN, &zc) == 0)
+		return (0);
+
+	if (errno != 0) {
+		printf( "easy scrub detect disk failures for %s\n", zc.zc_name);
+	}
+	return 1;
+	/*
+	char msg[1024];
+	int err;
+	err = errno;
+	*/
+
+	/* We will do error handling later. */
+
+}
+
 /*
  * Find a vdev that matches the search criteria specified. We use the
  * the nvpair name to determine how we should look for the device.
