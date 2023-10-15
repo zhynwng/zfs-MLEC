@@ -10,16 +10,3 @@ sudo apt install build-essential autoconf automake libtool gawk alien fakeroot \
     python3-sphinx
 
 sudo apt-get install linux-image-generic
-
-sh autogen.sh
-./configure
-make -s -j$(nproc)
-
-#--------------------------------Install----------------------------------------
-sudo make install
-sudo ldconfig
-sudo depmod
-
-sudo ./scripts/zfs.sh 
-sudo systemctl enable zfs.target zfs-import.target \
-    zfs-mount.service zfs-import-cache.service zfs-import-scan.service
