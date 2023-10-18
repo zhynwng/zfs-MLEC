@@ -1,4 +1,4 @@
-### Configure HDFS on top of OpenZFS
+# Configure HDFS on top of OpenZFS
 
 ## Set up individual nodes 
 To configure HDFS on top of ZFS, first build OpenZFS from source in your node:
@@ -33,7 +33,7 @@ Repeat this procedure on any number of nodes you want to set up as a cluster.
 ## Set up clusters
 Now, we finished the step for each individual nodes, we want to connect them into a cluster via HDFS. We will first choose one node to set up as a namenode (one per cluster), and then choose the rest to be datanodes. In terms of the EC policy for the cluster, this configuration sticks to the simplest policy of replication. 
 
-# Set up Namenode
+### Set up Namenode
 
 1.create the zfs dataset to hold the data and namenode
 ```
@@ -76,7 +76,7 @@ cd ~/hadoop/
 ./sbin/start-dfs.sh
 ```
 
-# Set up Datanode
+### Set up Datanode
 
 1.create the zfs dataset to hold the data and namenode
 ```
@@ -113,7 +113,7 @@ cd ~/hadoop/
 ./sbin/start-dfs.sh
 ```
 
-# Check your results
+## Check your results
 
 If configured properly, you can check your result in the following page in your datanode:
 ```
