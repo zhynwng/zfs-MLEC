@@ -9,12 +9,12 @@ First, reserve a node from Chameleon following this [guide](https://chameleonclo
 Then, clone the repository, and switch to the branch with MLEC implementation. 
 ```
 git clone https://github.com/zhynwng/zfs-MLEC.git
+cd zfs-MLEC/
 git checkout zfs-2.1-myraid
 ```
 
 Run the initialization script, which will install all necessary packages and set up the environment. Press Y for all options during package installation.
 ```
-cd zfs-MLEC
 ./zfs_init.sh
 ```
 
@@ -43,7 +43,7 @@ After the first installation, you can using the more light-weight installation s
 
 You can remove ZFS from the system by the following script
 ```
-zfs_uninstall.sh
+./zfs_uninstall.sh
 ```
 
 There are also testing scripts to test the general functionality of ZFS erasure coding systems (one is for general repair test, the other is to test the new easyscrub method). Feel free to explore and change these two scripts
