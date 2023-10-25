@@ -46,6 +46,38 @@ You can remove ZFS from the system by the following script
 ./zfs_uninstall.sh
 ```
 
+# Failure and Repair Test 
+
+Here is a hypothetical experiment to munual create and detect failures in ZFS. To conduct, you will need the [pv](https://linux.die.net/man/1/pv) linux tool. 
+
+First, create a test disk images for the ZFS pools. In ZFS, any file can be treated as a disk, with roughly the same functionality, so we can conduct the experiment without using actual disks. 
+sudo mkdir /scratch/
+for i in {1..3}; do sudo truncate -s 4G /scratch/$i.img; done sudo 
+
+Then, we create a 2+1 zpool named “test”. It should be mounted the to directory /test/
+zpool create zpool raidz /scratch/1.img /scratch/2.img /scratch/3.img -f 
+
+Then, we manually zero out 1 disks in the zpool. For test purpose, we will first write random bytes to the test zpool until it is full, and then partially zero out 1 disk to see the effect on ZFS data:
+pv < /dev/urandom > /test/urandom.bin
+
+Run this command for 2 second, and then press “^C” to terminate it. 
+pv < /dev/zero > /scratch/1.img
+
+At this point, there should already be some data errors in ZFS. We can conduct a full read by the following command, which will give you some error.
+pv < /test/urandom.bin > /dev/nul
+zpool status
+
+Since we have a 2+1 zpool, that means the data failure is tolerable. The repair would be easy. It would be the following command:
+
+sudo zpool scrub test
+zpool status
+
+You should be able to see that data is repaired in the output. 
+
+Finally, destroy experimental zpool. 
+sudo zpool destroty test
+
+
 There are also testing scripts to test the general functionality of ZFS erasure coding systems (one is for general repair test, the other is to test the new easyscrub method). Feel free to explore and change these two scripts
 ```
 ./zfs_test.sh
