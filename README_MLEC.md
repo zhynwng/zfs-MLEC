@@ -97,8 +97,7 @@ Here, "namenode-hostname" should be replaced with the fixed IP address for your 
 in hadoop/conf/hdfs-site.xml 
 ```
 <property>
-        <name>dfs.replication</name>
-        <value>3</value>
+        <name>dfs.namenode.ec.system.default.policy</name>
 </property>
 <property>
         <name>dfs.datanode.node.dir</name>
