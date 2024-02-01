@@ -119,5 +119,38 @@ If configured properly, you can check your result in the following page in your 
 https://localhost:9870
 ```
 
+## Simulate Failures
+
+First, following the intruction to create failures in local pool in README.md. 
+
+Upon a catastrophic failure, all I/O's to the pool should be suspended. Therefore, 
+we should start a new pool, and let HDFS reconstruct a new pool there. First, we do
+
+```
+./sbin/stop-dfs.sh
+```
+
+Then, we create a new ZFS local pool, name it test2. The configuration is 
+arbitary here, as long as it has the larger size as the original pool. 
+```
+zpool create test2 raidz /scratch/1.img /scratch/2.img /scratch/3.img -f 
+sudo zfs create test2/datanode
+```
+
+Change the configuration in hdfs-site.xml 
+```
+....
+<property>
+        <name>dfs.datanode.node.dir</name>
+        <value>file:///test2/datanode</value>
+</property>
+```
+
+Lastly, restart HDFS. The contruction should happen automatically. 
+```
+./sbin/start-dfs.sh
+```
+
+
 ## Dependencies
 Ubuntu 20.04 or 22.04 (works on [Chameleon](https://www.chameleoncloud.org/about/chameleon/))

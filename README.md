@@ -58,7 +58,7 @@ for i in {1..3}; do sudo truncate -s 4G /scratch/$i.img; done sudo
 
 Then, we create a 2+1 zpool named “test”. It should be mounted the to directory /test/
 ```
-zpool create zpool raidz /scratch/1.img /scratch/2.img /scratch/3.img -f 
+zpool create test raidz /scratch/1.img /scratch/2.img /scratch/3.img -f 
 ```
 
 Then, we manually zero out 1 disks in the zpool. For test purpose, we will first write random bytes to the test zpool until it is full, and then partially zero out 1 disk to see the effect on ZFS data:
