@@ -1,0 +1,5 @@
+{
+    "files.associations": {
+        "zfs_ioctl.h": "c"
+    }
+}

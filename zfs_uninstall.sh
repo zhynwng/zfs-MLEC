@@ -1,5 +1,5 @@
 # A simple shell script that uninstall zfs 
-
+sudo service zed stop
 sudo modprobe -r zfs
 sudo make uninstall
 sudo ldconfig

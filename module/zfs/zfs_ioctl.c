@@ -6901,6 +6901,7 @@ zfs_ioctl_register(const char *name, zfs_ioc_t ioc, zfs_ioc_func_t *func,
     zfs_ioc_poolcheck_t pool_check, boolean_t smush_outnvlist,
     boolean_t allow_log, const zfs_ioc_key_t *nvl_keys, size_t num_keys)
 {
+	zfs_dbgmsg("zfs_ioctl_register() is called in ZFS kernel module\n");
 	zfs_ioc_vec_t *vec = &zfs_ioc_vec[ioc - ZFS_IOC_FIRST];
 
 	ASSERT3U(ioc, >=, ZFS_IOC_FIRST);
@@ -6977,9 +6978,29 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 	    DATASET_NAME, B_TRUE, POOL_CHECK_SUSPENDED | POOL_CHECK_READONLY);
 }
 
+static int
+zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
+{
+	zfs_dbgmsg("zfs_mlec_test() is called in ZFS kernel module\n");
+	return 0;
+}
+
+// Always return 0
+static int 
+zfs_mlec_test_secpolicy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
+{
+	return 0;
+}
+
 static void
 zfs_ioctl_init(void)
 {
+	// MLEC stuff
+
+	zfs_ioctl_register("mlec-test", ZFS_MLEC_TEST,
+		zfs_mlec_test, zfs_mlec_test_secpolicy, NO_NAME,
+		POOL_CHECK_NONE, B_FALSE, B_TRUE, NULL, 0);
+
 	zfs_ioctl_register("snapshot", ZFS_IOC_SNAPSHOT,
 	    zfs_ioc_snapshot, zfs_secpolicy_snapshot, POOL_NAME,
 	    POOL_CHECK_SUSPENDED | POOL_CHECK_READONLY, B_TRUE, B_TRUE,
@@ -7475,6 +7496,7 @@ zfsdev_minor_alloc(void)
 long
 zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 {
+	zfs_dbgmsg("zfsdev_ioctl_common called with %d, %s, %d\n", vecnum, zc->zc_name, flag);
 	int error, cmd;
 	const zfs_ioc_vec_t *vec;
 	char *saved_poolname = NULL;
