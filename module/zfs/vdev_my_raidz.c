@@ -1631,6 +1631,7 @@ vdev_raidz_io_start_read(zio_t *zio, raidz_row_t *rr)
 static void
 vdev_my_raidz_io_start(zio_t *zio)
 {
+	zfs_dbgmsg("vdev_my_raidz_io_start() called\n");
 	vdev_t *vd = zio->io_vd;
 	vdev_t *tvd = vd->vdev_top;
 	vdev_raidz_t *vdrz = vd->vdev_tsd;
@@ -2270,6 +2271,7 @@ vdev_raidz_read_all(zio_t *zio, raidz_row_t *rr)
 static void
 vdev_raidz_io_done_unrecoverable(zio_t *zio)
 {
+	zfs_dbgmsg("vdev_raidz_io_done_unrecoverable() called\n");
 	raidz_map_t *rm = zio->io_vsd;
 
 	for (int i = 0; i < rm->rm_nrows; i++) {
@@ -2299,6 +2301,7 @@ vdev_raidz_io_done_unrecoverable(zio_t *zio)
 void
 vdev_my_raidz_io_done(zio_t *zio)
 {
+	zfs_dbgmsg("vdev_my_raidz_io_done\n");
 	raidz_map_t *rm = zio->io_vsd;
 
 	if (zio->io_type == ZIO_TYPE_WRITE) {
@@ -2306,6 +2309,7 @@ vdev_my_raidz_io_done(zio_t *zio)
 			vdev_raidz_io_done_write_impl(zio, rm->rm_row[i]);
 		}
 	} else {
+		
 		for (int i = 0; i < rm->rm_nrows; i++) {
 			raidz_row_t *rr = rm->rm_row[i];
 			vdev_raidz_io_done_reconstruct_known_missing(zio,
@@ -2313,12 +2317,14 @@ vdev_my_raidz_io_done(zio_t *zio)
 		}
 
 		if (raidz_checksum_verify(zio) == 0) {
+			zfs_dbgmsg("raidz_checksum_verify return good\n");
 			for (int i = 0; i < rm->rm_nrows; i++) {
 				raidz_row_t *rr = rm->rm_row[i];
 				vdev_raidz_io_done_verified(zio, rr);
 			}
 			zio_checksum_verified(zio);
 		} else {
+			zfs_dbgmsg("raidz_checksum_verify return bad\n");
 			/*
 			 * A sequential resilver has no checksum which makes
 			 * combinatoral reconstruction impossible. This code
@@ -2341,6 +2347,7 @@ vdev_my_raidz_io_done(zio_t *zio)
 				nread += vdev_raidz_read_all(zio,
 				    rm->rm_row[i]);
 			}
+			zfs_dbgmsg("nread = %d\n", nread);
 			if (nread != 0) {
 				/*
 				 * Normally our stage is VDEV_IO_DONE, but if
@@ -2354,8 +2361,11 @@ vdev_my_raidz_io_done(zio_t *zio)
 			}
 
 			zio->io_error = vdev_raidz_combrec(zio);
+
+			zfs_dbgmsg("vdev_raidz_combrec return %d\n", zio->io_error);
 			if (zio->io_error == ECKSUM &&
 			    !(zio->io_flags & ZIO_FLAG_SPECULATIVE)) {
+				zfs_dbgmsg("Calling vdev_raidz_io_done_unrecoverable\n");
 				vdev_raidz_io_done_unrecoverable(zio);
 			}
 		}

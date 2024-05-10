@@ -1398,6 +1398,7 @@ static int
 vdev_raidz_open(vdev_t *vd, uint64_t *asize, uint64_t *max_asize,
     uint64_t *logical_ashift, uint64_t *physical_ashift)
 {
+	zfs_dbgmsg("vdev_raidz_open\n");
 	vdev_raidz_t *vdrz = vd->vdev_tsd;
 	uint64_t nparity = vdrz->vd_nparity;
 	int c;
@@ -1450,6 +1451,7 @@ vdev_raidz_open(vdev_t *vd, uint64_t *asize, uint64_t *max_asize,
 static void
 vdev_raidz_close(vdev_t *vd)
 {
+	zfs_dbgmsg("vdev_raidz_close\n");
 	for (int c = 0; c < vd->vdev_children; c++) {
 		if (vd->vdev_child[c] != NULL)
 			vdev_close(vd->vdev_child[c]);
@@ -1631,6 +1633,7 @@ vdev_raidz_io_start_read(zio_t *zio, raidz_row_t *rr)
 static void
 vdev_raidz_io_start(zio_t *zio)
 {
+	zfs_dbgmsg("vdev_raidz_io_start: %s", zio_type_name[zio->io_type]);
 	vdev_t *vd = zio->io_vd;
 	vdev_t *tvd = vd->vdev_top;
 	vdev_raidz_t *vdrz = vd->vdev_tsd;
@@ -2299,6 +2302,7 @@ vdev_raidz_io_done_unrecoverable(zio_t *zio)
 void
 vdev_raidz_io_done(zio_t *zio)
 {
+	zfs_dbgmsg("vdev_raidz_io_done(): %s", zio_type_name[zio->io_type]);
 	raidz_map_t *rm = zio->io_vsd;
 
 	if (zio->io_type == ZIO_TYPE_WRITE) {
@@ -2462,6 +2466,7 @@ vdev_raidz_xlate(vdev_t *cvd, const range_seg64_t *logical_rs,
 static int
 vdev_raidz_init(spa_t *spa, nvlist_t *nv, void **tsd)
 {
+	zfs_dbgmsg("vdev_raidz_init()\n");
 	vdev_raidz_t *vdrz;
 	uint64_t nparity;
 

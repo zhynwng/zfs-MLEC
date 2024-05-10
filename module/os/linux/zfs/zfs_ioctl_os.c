@@ -180,9 +180,8 @@ zfsdev_release(struct inode *ino, struct file *filp)
 
 static long
 zfsdev_ioctl(struct file *filp, unsigned cmd, unsigned long arg)
-{
-	printk("zfsdev_ioctl() called\n");
-	zfs_dbgmsg("zfsdev_ioctl() called\n");
+{\
+	zfs_dbgmsg("zfsdev_ioctl() called jaja\n");
 	uint_t vecnum;
 	zfs_cmd_t *zc;
 	int error, rc;
