@@ -4,7 +4,7 @@ set -e
 
 # A simple shell script that uninstall zfs 
 sudo service zed stop
-# sudo modprobe -r zfs
+sudo modprobe -r zfs
 sudo make uninstall
 sudo ldconfig
 sudo depmod
@@ -22,4 +22,4 @@ sudo systemctl enable zfs.target zfs-import.target \
     zfs-mount.service zfs-import-cache.service zfs-import-scan.service
 sudo modprobe zfs
 
-echo "All commands ran successfully"
+echo "All commands ran successfully" 
