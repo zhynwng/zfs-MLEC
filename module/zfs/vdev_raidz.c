@@ -2271,7 +2271,6 @@ static void
 vdev_raidz_io_done_unrecoverable(zio_t *zio)
 {
 	raidz_map_t *rm = zio->io_vsd;
-
 	for (int i = 0; i < rm->rm_nrows; i++) {
 		raidz_row_t *rr = rm->rm_row[i];
 
@@ -2282,6 +2281,8 @@ vdev_raidz_io_done_unrecoverable(zio_t *zio)
 			if (rc->rc_error != 0)
 				continue;
 
+			zfs_dbgmsg("FAIL at row %d column %d;  objset: %d  object %d, level %d, blkid %d; offset %d ", i, c, 
+				zio->io_bookmark.zb_objset, zio->io_bookmark.zb_object, zio->io_bookmark.zb_level, zio->io_bookmark.zb_blkid, rc->rc_offset);
 			zio_bad_cksum_t zbc;
 			zbc.zbc_has_cksum = 0;
 			zbc.zbc_injected = rm->rm_ecksuminjected;

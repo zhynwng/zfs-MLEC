@@ -1,208 +1,527 @@
 timestamp    message 
-1696442559   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442559   vdev.c:744:vdev_alloc(): <2>
-1696442559   vdev.c:745:vdev_alloc(): root
-1696442559   vdev.c:752:vdev_alloc(): non-root
-1696442559   vdev.c:764:vdev_alloc(): next step
-1696442559   vdev.c:792:vdev_alloc(): <2.5>
-1696442559   vdev.c:805:vdev_alloc(): <3>
-1696442559   vdev.c:841:vdev_alloc(): <4>
-1696442559   vdev.c:915:vdev_alloc(): <5>
-1696442559   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442559   vdev.c:744:vdev_alloc(): <2>
-1696442559   vdev.c:745:vdev_alloc(): raidz
-1696442559   vdev.c:752:vdev_alloc(): non-root
-1696442559   vdev.c:764:vdev_alloc(): next step
-1696442559   vdev.c:792:vdev_alloc(): <2.5>
-1696442559   vdev.c:805:vdev_alloc(): <3>
-1696442559   vdev.c:841:vdev_alloc(): <4>
-1696442559   vdev.c:915:vdev_alloc(): <5>
-1696442559   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442559   vdev.c:744:vdev_alloc(): <2>
-1696442559   vdev.c:745:vdev_alloc(): file
-1696442559   vdev.c:752:vdev_alloc(): non-root
-1696442559   vdev.c:764:vdev_alloc(): next step
-1696442559   vdev.c:792:vdev_alloc(): <2.5>
-1696442559   vdev.c:805:vdev_alloc(): <3>
-1696442559   vdev.c:841:vdev_alloc(): <4>
-1696442559   vdev.c:915:vdev_alloc(): <5>
-1696442559   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442559   vdev.c:744:vdev_alloc(): <2>
-1696442559   vdev.c:745:vdev_alloc(): file
-1696442559   vdev.c:752:vdev_alloc(): non-root
-1696442559   vdev.c:764:vdev_alloc(): next step
-1696442559   vdev.c:792:vdev_alloc(): <2.5>
-1696442559   vdev.c:805:vdev_alloc(): <3>
-1696442559   vdev.c:841:vdev_alloc(): <4>
-1696442559   vdev.c:915:vdev_alloc(): <5>
-1696442559   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442559   vdev.c:744:vdev_alloc(): <2>
-1696442559   vdev.c:745:vdev_alloc(): file
-1696442559   vdev.c:752:vdev_alloc(): non-root
-1696442559   vdev.c:764:vdev_alloc(): next step
-1696442559   vdev.c:792:vdev_alloc(): <2.5>
-1696442559   vdev.c:805:vdev_alloc(): <3>
-1696442559   vdev.c:841:vdev_alloc(): <4>
-1696442559   vdev.c:915:vdev_alloc(): <5>
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 create pool version 5000; software version zfs-2.1.12-8-gb8691247e-dirty; uts mlec-alex-node2 5.4.0-163-generic #180-Ubuntu SMP Tue Sep 5 13:21:23 UTC 2023 x86_64
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@async_destroy=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@empty_bpobj=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@lz4_compress=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@multi_vdev_crash_dump=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@spacemap_histogram=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@enabled_txg=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@hole_birth=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@extensible_dataset=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@embedded_data=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmarks=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@filesystem_limits=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@large_blocks=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@large_dnode=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@sha512=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@skein=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@edonr=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@userobj_accounting=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@encryption=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@project_quota=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@device_removal=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@obsolete_counts=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@zpool_checkpoint=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@spacemap_v2=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@allocation_classes=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@resilver_defer=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmark_v2=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@redaction_bookmarks=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@redacted_datasets=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmark_written=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@log_spacemap=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@livelist=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@device_rebuild=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@zstd_compress=enabled
-1696442560   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@draid=enabled
-1696442560   mmp.c:240:mmp_thread_start(): MMP thread started pool 'zpool' gethrtime 456081757664
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 0, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456082 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 1000000040000000, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 1, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456082 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003e9bd37b, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 2, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456083 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003d37a6f5, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 3, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456083 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003bd37a70, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 4, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456084 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003a6f4dea, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 5, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456084 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 10000000390b2165, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 6, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456085 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 1000000037a6f4df, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 7, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456085 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003642c85a, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 8, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456086 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 1000000034de9bd4, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 9, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 10, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 11, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 12, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 13, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 14, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 15, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 16, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 17, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 456114 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442560   spa_history.c:294:spa_history_log_sync(): command: zpool create zpool raidz /scratch/1.img /scratch/2.img /scratch/3.img -f
-1696442560   vdev.c:160:vdev_dbgmsg(): file vdev '/scratch/2.img': vdev_validate: failed reading config for txg 18446744073709551615
-1696442560   vdev.c:2679:vdev_reopen(): 9
-1696442560   spa_history.c:294:spa_history_log_sync(): command: zpool destroy zpool
-1696442560   spa_misc.c:418:spa_load_note(): spa_load(zpool, config trusted): UNLOADING
-1696442560   mmp.c:260:mmp_thread_stop(): MMP thread stopped pool 'zpool' gethrtime 456252061404
-1696442594   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442594   vdev.c:744:vdev_alloc(): <2>
-1696442594   vdev.c:745:vdev_alloc(): root
-1696442594   vdev.c:752:vdev_alloc(): non-root
-1696442594   vdev.c:764:vdev_alloc(): next step
-1696442594   vdev.c:792:vdev_alloc(): <2.5>
-1696442594   vdev.c:805:vdev_alloc(): <3>
-1696442594   vdev.c:841:vdev_alloc(): <4>
-1696442594   vdev.c:915:vdev_alloc(): <5>
-1696442594   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442594   vdev.c:744:vdev_alloc(): <2>
-1696442594   vdev.c:745:vdev_alloc(): raidz
-1696442594   vdev.c:752:vdev_alloc(): non-root
-1696442594   vdev.c:764:vdev_alloc(): next step
-1696442594   vdev.c:792:vdev_alloc(): <2.5>
-1696442594   vdev.c:805:vdev_alloc(): <3>
-1696442594   vdev.c:841:vdev_alloc(): <4>
-1696442594   vdev.c:915:vdev_alloc(): <5>
-1696442594   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442594   vdev.c:744:vdev_alloc(): <2>
-1696442594   vdev.c:745:vdev_alloc(): file
-1696442594   vdev.c:752:vdev_alloc(): non-root
-1696442594   vdev.c:764:vdev_alloc(): next step
-1696442594   vdev.c:792:vdev_alloc(): <2.5>
-1696442594   vdev.c:805:vdev_alloc(): <3>
-1696442594   vdev.c:841:vdev_alloc(): <4>
-1696442594   vdev.c:915:vdev_alloc(): <5>
-1696442594   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442594   vdev.c:744:vdev_alloc(): <2>
-1696442594   vdev.c:745:vdev_alloc(): file
-1696442594   vdev.c:752:vdev_alloc(): non-root
-1696442594   vdev.c:764:vdev_alloc(): next step
-1696442594   vdev.c:792:vdev_alloc(): <2.5>
-1696442594   vdev.c:805:vdev_alloc(): <3>
-1696442594   vdev.c:841:vdev_alloc(): <4>
-1696442594   vdev.c:915:vdev_alloc(): <5>
-1696442594   vdev.c:718:vdev_alloc(): get ops sucessful
-1696442594   vdev.c:744:vdev_alloc(): <2>
-1696442594   vdev.c:745:vdev_alloc(): file
-1696442594   vdev.c:752:vdev_alloc(): non-root
-1696442594   vdev.c:764:vdev_alloc(): next step
-1696442594   vdev.c:792:vdev_alloc(): <2.5>
-1696442594   vdev.c:805:vdev_alloc(): <3>
-1696442594   vdev.c:841:vdev_alloc(): <4>
-1696442594   vdev.c:915:vdev_alloc(): <5>
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 create pool version 5000; software version zfs-2.1.12-8-gb8691247e-dirty; uts mlec-alex-node2 5.4.0-163-generic #180-Ubuntu SMP Tue Sep 5 13:21:23 UTC 2023 x86_64
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@async_destroy=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@empty_bpobj=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@lz4_compress=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@multi_vdev_crash_dump=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@spacemap_histogram=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@enabled_txg=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@hole_birth=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@extensible_dataset=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@embedded_data=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmarks=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@filesystem_limits=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@large_blocks=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@large_dnode=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@sha512=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@skein=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@edonr=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@userobj_accounting=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@encryption=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@project_quota=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@device_removal=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@obsolete_counts=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@zpool_checkpoint=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@spacemap_v2=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@allocation_classes=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@resilver_defer=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmark_v2=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@redaction_bookmarks=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@redacted_datasets=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmark_written=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@log_spacemap=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@livelist=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@device_rebuild=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@zstd_compress=enabled
-1696442594   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@draid=enabled
-1696442594   mmp.c:240:mmp_thread_start(): MMP thread started pool 'zpool' gethrtime 490872531459
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 0, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490873 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 1000000040000000, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 1, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490873 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003e9bd37b, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 2, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490873 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003d37a6f5, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 3, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490873 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003bd37a70, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 4, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490874 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003a6f4dea, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 5, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490874 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 10000000390b2165, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 6, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490874 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 1000000037a6f4df, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 7, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490874 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003642c85a, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 8, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490876 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 1000000034de9bd4, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 9, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 10, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 11, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 12, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 13, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 14, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 15, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 16, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa zpool, vdev_id 0, ms_id 17, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 490905 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
-1696442594   spa_history.c:294:spa_history_log_sync(): command: zpool create zpool raidz /scratch/1.img /scratch/2.img /scratch/3.img -f
-1696442594   vdev.c:160:vdev_dbgmsg(): file vdev '/scratch/2.img': vdev_validate: failed reading config for txg 18446744073709551615
-1696442594   vdev.c:2679:vdev_reopen(): 9
+1718053136   vdev.c:718:vdev_alloc(): get ops sucessful
+1718053136   vdev.c:744:vdev_alloc(): <2>
+1718053136   vdev.c:745:vdev_alloc(): root
+1718053136   vdev.c:752:vdev_alloc(): non-root
+1718053136   vdev.c:764:vdev_alloc(): next step
+1718053136   vdev.c:792:vdev_alloc(): <2.5>
+1718053136   vdev.c:805:vdev_alloc(): <3>
+1718053136   vdev.c:841:vdev_alloc(): <4>
+1718053136   vdev.c:915:vdev_alloc(): <5>
+1718053136   vdev.c:718:vdev_alloc(): get ops sucessful
+1718053136   vdev.c:744:vdev_alloc(): <2>
+1718053136   vdev.c:745:vdev_alloc(): raidz
+1718053136   vdev.c:752:vdev_alloc(): non-root
+1718053136   vdev.c:764:vdev_alloc(): next step
+1718053136   vdev.c:792:vdev_alloc(): <2.5>
+1718053136   vdev.c:805:vdev_alloc(): <3>
+1718053136   vdev.c:841:vdev_alloc(): <4>
+1718053136   vdev.c:915:vdev_alloc(): <5>
+1718053136   vdev.c:718:vdev_alloc(): get ops sucessful
+1718053136   vdev.c:744:vdev_alloc(): <2>
+1718053136   vdev.c:745:vdev_alloc(): file
+1718053136   vdev.c:752:vdev_alloc(): non-root
+1718053136   vdev.c:764:vdev_alloc(): next step
+1718053136   vdev.c:792:vdev_alloc(): <2.5>
+1718053136   vdev.c:805:vdev_alloc(): <3>
+1718053136   vdev.c:841:vdev_alloc(): <4>
+1718053136   vdev.c:915:vdev_alloc(): <5>
+1718053136   vdev.c:718:vdev_alloc(): get ops sucessful
+1718053136   vdev.c:744:vdev_alloc(): <2>
+1718053136   vdev.c:745:vdev_alloc(): file
+1718053136   vdev.c:752:vdev_alloc(): non-root
+1718053136   vdev.c:764:vdev_alloc(): next step
+1718053136   vdev.c:792:vdev_alloc(): <2.5>
+1718053136   vdev.c:805:vdev_alloc(): <3>
+1718053136   vdev.c:841:vdev_alloc(): <4>
+1718053136   vdev.c:915:vdev_alloc(): <5>
+1718053136   vdev.c:718:vdev_alloc(): get ops sucessful
+1718053136   vdev.c:744:vdev_alloc(): <2>
+1718053136   vdev.c:745:vdev_alloc(): file
+1718053136   vdev.c:752:vdev_alloc(): non-root
+1718053136   vdev.c:764:vdev_alloc(): next step
+1718053136   vdev.c:792:vdev_alloc(): <2.5>
+1718053136   vdev.c:805:vdev_alloc(): <3>
+1718053136   vdev.c:841:vdev_alloc(): <4>
+1718053136   vdev.c:915:vdev_alloc(): <5>
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 create pool version 5000; software version zfs-2.1.12-16-gad035443f-dirty; uts mlec-alex 5.4.0-174-generic #193-Ubuntu SMP Thu Mar 7 14:29:28 UTC 2024 x86_64
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@async_destroy=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@empty_bpobj=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@lz4_compress=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@multi_vdev_crash_dump=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@spacemap_histogram=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@enabled_txg=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@hole_birth=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@extensible_dataset=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@embedded_data=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmarks=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@filesystem_limits=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@large_blocks=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@large_dnode=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@sha512=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@skein=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@edonr=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@userobj_accounting=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@encryption=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@project_quota=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@device_removal=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@obsolete_counts=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@zpool_checkpoint=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@spacemap_v2=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@allocation_classes=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@resilver_defer=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmark_v2=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@redaction_bookmarks=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@redacted_datasets=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@bookmark_written=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@log_spacemap=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@livelist=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@device_rebuild=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@zstd_compress=enabled
+1718053136   spa_history.c:307:spa_history_log_sync(): txg 4 set feature@draid=enabled
+1718053136   mmp.c:240:mmp_thread_start(): MMP thread started pool 'test' gethrtime 171295091710336
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 0, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295092 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 1000000040000000, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 1, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295092 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003d1745d2, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 2, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295096 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003a2e8ba3, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 3, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295096 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 100000003745d175, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 4, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295129 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 5, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295129 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 6, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295129 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 7, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295129 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 8, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295129 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 9, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295129 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
+1718053136   metaslab.c:2437:metaslab_load_impl(): metaslab_load: txg 4, spa test, vdev_id 0, ms_id 10, smp_length 0, unflushed_allocs 0, unflushed_frees 0, freed 0, defer 0 + 0, unloaded time 171295129 ms, loading_time 0 ms, ms_max_size 536870912, max size error 536870912, old_weight 740000000000001, new_weight 740000000000001
+1718053136   spa_history.c:294:spa_history_log_sync(): command: zpool create test raidz /scratch/1.img /scratch/2.img /scratch/3.img
+1718053150   vdev.c:160:vdev_dbgmsg(): file vdev '/scratch/3.img': vdev_validate: failed reading config for txg 18446744073709551615
+1718053150   vdev.c:160:vdev_dbgmsg(): file vdev '/scratch/2.img': vdev_validate: failed reading config for txg 18446744073709551615
+1718053150   vdev.c:2679:vdev_reopen(): 9
+1718053150   spa_history.c:307:spa_history_log_sync(): txg 10 scan setup func=1 mintxg=0 maxtxg=10
+1718053150   dsl_scan.c:3759:dsl_scan_sync(): doing scan sync txg 10; ddt bm=0/0/0/0
+1718053150   dsl_scan.c:2732:dsl_scan_ddt(): scanned 0 ddt entries with class_max = 1; suspending=0
+1718053150   dsl_scan.c:2515:dsl_scan_visitds(): scanned dataset 48 (test/$ORIGIN@$ORIGIN) with min=0 max=10; suspending=0
+1718053150   dsl_scan.c:2515:dsl_scan_visitds(): scanned dataset 45 (test/$ORIGIN) with min=1 max=10; suspending=0
+1718053150   dsl_scan.c:2515:dsl_scan_visitds(): scanned dataset 54 (test) with min=1 max=10; suspending=0
+1718053150   dsl_scan.c:3797:dsl_scan_sync(): scan visited 6289 blocks in 2ms (4 os's, 6227 holes, 0 < mintxg, 0 in ddt, 0 > maxtxg)
+1718053150   dsl_scan.c:3819:dsl_scan_sync(): scan complete txg 10
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 35, level 0, blkid 0; offset 512 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 35, level 0, blkid 0; offset 512 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 36, level 0, blkid 1; offset 1024 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 36, level 0, blkid 1; offset 1536 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 36, level 0, blkid 1; offset 1536 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 10240 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 10752 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 10752 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 51, level 0, blkid 0; offset 26112 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 9216 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 0, blkid 0; offset 20992 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 51, level 0, blkid 0; offset 26112 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 9728 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 0, blkid 0; offset 20992 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 19456 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 1, blkid 0; offset 22016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 9728 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 2, blkid 0; offset 22528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 35, level 0, blkid 0; offset 512 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 35, level 0, blkid 0; offset 512 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 19968 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 1, blkid 0; offset 22016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 2, blkid 0; offset 23040 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 1, blkid 0; offset 22528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 19968 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 2, blkid 0; offset 23040 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 4, blkid 0; offset 24064 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 27648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 5, blkid 0; offset 24576 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 28160 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 4, blkid 0; offset 24064 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 37376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 1, level 0, blkid 0; offset 178956800 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 0; offset 178966016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 0; offset 178966016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 36, level 0, blkid 1; offset 1024 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 36, level 0, blkid 1; offset 1536 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 36, level 0, blkid 1; offset 1536 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 5, blkid 0; offset 25088 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 51, level 0, blkid 0; offset 26112 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 51, level 0, blkid 0; offset 26112 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 0, blkid 1; offset 178978304 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 10240 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 0, blkid 1; offset 178978304 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 10752 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 0, blkid 1; offset 178978816 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 10752 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 28160 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 1, blkid 0; offset 178978816 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 1, blkid 0; offset 178979328 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 3, blkid 0; offset 178980352 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 4, blkid 0; offset 178980864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level -1, blkid 0; offset 178982400 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 3, blkid 0; offset 178980352 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 4, blkid 0; offset 178981376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level -1, blkid 0; offset 178982400 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 3, blkid 0; offset 178980864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 4, blkid 0; offset 24576 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 37376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 37888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 1, level 0, blkid 0; offset 178956800 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 5, blkid 0; offset 25088 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 31744 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 32256 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 32256 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 1, blkid 0; offset 178979328 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 4, blkid 0; offset 178981376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 1, blkid 0; offset 178978816 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 1, blkid 0; offset 178979328 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 1, blkid 0; offset 178979328 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 178985472 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 178985472 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 178985984 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 178985472 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 178985472 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 178985984 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 9216 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 9728 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 9728 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 36, level 0, blkid 1; offset 1024 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 36, level 0, blkid 1; offset 1536 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 36, level 0, blkid 1; offset 1536 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 0, level 0, blkid 4; offset 178989568 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 0, level 0, blkid 4; offset 178989568 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 0, blkid 0; offset 20992 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 0, blkid 0; offset 20992 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 51, level 0, blkid 0; offset 357926400 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 51, level 0, blkid 0; offset 357926400 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 357927936 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 357928448 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 357928448 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 357932032 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 357932544 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 357932544 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 357937664 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 357937664 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 357938176 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 9216 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 9728 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 9728 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 19456 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 19968 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 19968 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 2, blkid 0; offset 22528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 2, blkid 0; offset 23040 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 10240 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 2, blkid 0; offset 23040 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 10752 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 4, blkid 0; offset 24064 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 10752 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 4, blkid 0; offset 24064 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 4, blkid 0; offset 24576 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 27648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 28160 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 1, blkid 0; offset 22016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 28160 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 1, blkid 0; offset 22016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 1, blkid 0; offset 22528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 31744 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 32256 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 32256 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 37376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 5, blkid 0; offset 24576 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 37376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 5, blkid 0; offset 25088 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 37888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 5, blkid 0; offset 25088 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 1, level 0, blkid 0; offset 178956800 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 1, level 0, blkid 0; offset 178956800 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 0; offset 178966016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 0; offset 178966016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 36, level 0, blkid 1; offset 178958336 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 0, blkid 1; offset 178978304 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 0, blkid 1; offset 178978304 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 0, blkid 1; offset 178978816 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 0, blkid 1; offset 178978304 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 0, blkid 1; offset 178978304 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 0, blkid 1; offset 178978816 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 1, blkid 0; offset 178978816 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 1, blkid 0; offset 178979328 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 2, blkid 0; offset 178979840 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 3, blkid 0; offset 178980352 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 1, blkid 0; offset 178979328 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 3, blkid 0; offset 178980352 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 3, blkid 0; offset 178980864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level -1, blkid 0; offset 178982400 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level -1, blkid 0; offset 178982400 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 0; offset 357914112 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 0; offset 357914112 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 0, level 0, blkid 4; offset 178989568 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 0, level 0, blkid 4; offset 178989568 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 178994176 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 178994688 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 178994176 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 178994688 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 178994688 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 178994688 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 0; offset 357914112 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 0; offset 357914112 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 178985472 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 178985472 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 178985984 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 19456 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 19968 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 19968 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 1, blkid 0; offset 22016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 0, blkid 1; offset 21504 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 1, blkid 0; offset 22016 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 1, blkid 0; offset 22528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 4, blkid 0; offset 24064 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 4, blkid 0; offset 24064 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 3, blkid 0; offset 23552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 4, blkid 0; offset 24576 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 27648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 28160 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 28160 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 357927936 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 2, blkid 0; offset 22528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 357928448 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 5, blkid 0; offset 24576 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 2, blkid 0; offset 23040 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 357928448 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 5, blkid 0; offset 25088 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 2, blkid 0; offset 23040 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 5, blkid 0; offset 25088 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 3, blkid 0; offset 178980352 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 3, blkid 0; offset 178980352 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 3, blkid 0; offset 178980864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 357937664 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 357937664 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 357938176 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 357932032 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 357932544 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 357932544 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 4, blkid 0; offset 178980864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 4, blkid 0; offset 178981376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 31744 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 4, blkid 0; offset 178981376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 32256 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 32256 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 9216 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 9728 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 357937664 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 9728 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 357937664 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 357938176 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 178966528 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 37376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 37376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 37888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 4, blkid 0; offset 178980864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 10240 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 357932032 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 4, blkid 0; offset 178981376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 10752 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 357932544 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 4, blkid 0; offset 178981376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 357932544 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 10752 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 54  object 0, level 5, blkid 0; offset 178981888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 178994176 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 178994688 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 178994688 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 178967552 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 63, level 0, blkid 0; offset 357914624 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 357924864 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 357927936 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 357928448 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 19456 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 357928448 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 357932032 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 19968 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 357937664 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 19968 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 357932544 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 357937664 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 357932544 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 178994176 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 53, level 0, blkid 1; offset 357915648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 357938176 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 129, level 0, blkid 0; offset 37376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 178994688 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 31744 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 129, level 0, blkid 0; offset 37376 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 178994688 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 32256 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 129, level 0, blkid 0; offset 37888 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 71, level 0, blkid 0; offset 178976768 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 32256 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 357928960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 75, level 0, blkid 0; offset 178989056 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 357927936 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 357928448 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 28672 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 357928448 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 27648 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 28160 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 28160 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 128, level 0, blkid 0; offset 178985472 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 128, level 0, blkid 0; offset 178985472 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 128, level 0, blkid 0; offset 178985984 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 0;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 1;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   vdev_raidz.c:2284:vdev_raidz_io_done_unrecoverable(): FAIL at row 0 column 2;  objset: 0  object 76, level 0, blkid 0; offset 178984960 
+1718053150   dsl_scan.c:3836:dsl_scan_sync(): scan issued 54 blocks (7 segs) in 6ms (avg_block_size = 5840, avg_seg_size = 36864)
+1718053150   dsl_scan.c:707:dsl_scan_sync_state(): finish scan checkpoint
+1718053150   spa_history.c:294:spa_history_log_sync(): command: zpool scrub test
+1718053150   dsl_scan.c:3733:dsl_scan_sync(): finish scan clearing
+1718053150   dsl_scan.c:3846:dsl_scan_sync(): scan issuing complete txg 12
+1718053150   spa_history.c:307:spa_history_log_sync(): txg 12 scan done errors=14
+1718053150   spa.c:8403:spa_async_request(): spa=test async request task=8
+1718053150   vdev.c:160:vdev_dbgmsg(): file vdev '/scratch/3.img': txg 12, spa test, DTL old object 0, new object 263
+1718053150   vdev.c:160:vdev_dbgmsg(): file vdev '/scratch/2.img': txg 12, spa test, DTL old object 0, new object 264
+1718053150   vdev.c:160:vdev_dbgmsg(): file vdev '/scratch/1.img': txg 12, spa test, DTL old object 0, new object 265
