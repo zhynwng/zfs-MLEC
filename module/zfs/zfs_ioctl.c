@@ -6978,10 +6978,24 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 	    DATASET_NAME, B_TRUE, POOL_CHECK_SUSPENDED | POOL_CHECK_READONLY);
 }
 
+static const zfs_ioc_key_t zfs_keys_mlec_test[] = {
+	{"mybinarydata",	DATA_TYPE_ANY,	0},
+	{"optional",	DATA_TYPE_NVLIST,	ZK_OPTIONAL},
+};
+
 static int
 zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
-	zfs_dbgmsg("zfs_mlec_test() is called in ZFS kernel module\n");
+	// Retrieve the byte array from the nvlist
+    unsigned char *retrieved_data = NULL;
+    uint_t retrieved_data_size = 0;
+
+    if (nvlist_lookup_byte_array(innvl, "mybinarydata", &retrieved_data, &retrieved_data_size) != 0) {
+        // No need to free, if error code != 1, the tear down function will free the innvl for us
+        return 1;
+    }
+
+	zfs_dbgmsg("zfs_mlec_test() is called in ZFS kernel module with %s inputs\n", retrieved_data);
 	return 0;
 }
 
@@ -6999,7 +7013,7 @@ zfs_ioctl_init(void)
 
 	zfs_ioctl_register("mlec-test", ZFS_MLEC_TEST,
 		zfs_mlec_test, zfs_mlec_test_secpolicy, NO_NAME,
-		POOL_CHECK_NONE, B_FALSE, B_TRUE, NULL, 0);
+		POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_mlec_test, ARRAY_SIZE(zfs_keys_mlec_test));
 
 	zfs_ioctl_register("snapshot", ZFS_IOC_SNAPSHOT,
 	    zfs_ioc_snapshot, zfs_secpolicy_snapshot, POOL_NAME,
@@ -7496,7 +7510,6 @@ zfsdev_minor_alloc(void)
 long
 zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 {
-	zfs_dbgmsg("zfsdev_ioctl_common called with %d, %s, %d\n", vecnum, zc->zc_name, flag);
 	int error, cmd;
 	const zfs_ioc_vec_t *vec;
 	char *saved_poolname = NULL;
@@ -7512,6 +7525,8 @@ zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 		return (SET_ERROR(ZFS_ERR_IOC_CMD_UNAVAIL));
 
 	vec = &zfs_ioc_vec[vecnum];
+
+	zfs_dbgmsg("zfsdev_ioctl_common called with %s, %s, %d\n", vec->zvec_name, zc->zc_name, flag);
 
 	/*
 	 * The registered ioctl list may be sparse, verify that either
@@ -7579,6 +7594,8 @@ zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 	case NO_NAME:
 		break;
 	}
+
+	zfs_dbgmsg("zfsdev_ioctl_common(): pool valid");
 	/*
 	 * Ensure that all input pairs are valid before we pass them down
 	 * to the lower layers.
@@ -7588,10 +7605,13 @@ zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 	 * they exist and are of the correct type.
 	 */
 	if (error == 0 && vec->zvec_func != NULL) {
+		zfs_dbgmsg("zfsdev_ioctl_common(): checking input nvlist");
 		error = zfs_check_input_nvpairs(innvl, vec);
 		if (error != 0)
 			goto out;
 	}
+
+	zfs_dbgmsg("zfsdev_ioctl_common(): nvlist good");
 
 	if (error == 0) {
 		cookie = spl_fstrans_mark();
@@ -7601,6 +7621,8 @@ zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 
 	if (error != 0)
 		goto out;
+
+	zfs_dbgmsg("zfsdev_ioctl_common(): input valid");
 
 	/* legacy ioctls can modify zc_name */
 	/*

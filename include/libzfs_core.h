@@ -139,7 +139,7 @@ int lzc_set_bootenv(const char *, const nvlist_t *);
 int lzc_get_bootenv(const char *, nvlist_t **);
 
 // MLEC test stuff
-int lzc_test();
+int lzc_mlec_test(const char *pool, const nvlist_t *input);
 
 #ifdef	__cplusplus
 }
