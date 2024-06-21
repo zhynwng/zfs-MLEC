@@ -5,11 +5,11 @@ size=$1
 set -e
 
 # A simple shell script that uninstall zfs 
-sudo service zed stop
+sudo service zfs-zed stop
 # Check if the ZFS module is loaded
 if lsmod | grep -q "^zfs"; then
     echo "ZFS module is loaded."
-    sudo zpool destroy -f pool
+    # sudo zpool destroy -f pool
     sudo modprobe -r zfs
     # Perform actions when the ZFS module is loaded
 else

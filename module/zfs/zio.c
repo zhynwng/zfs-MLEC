@@ -1312,8 +1312,12 @@ zio_ioctl(zio_t *pio, spa_t *spa, vdev_t *vd, int cmd,
 {
 	zio_t *zio;
 	int c;
-
-	if (vd->vdev_children == 0) {
+	
+	if (pio->io_type == ZIO_TYPE_MLEC_WRITE_DATA) {
+		zio = zio_create(pio, spa, 0, NULL, NULL, 0, 0, done, private,
+		    ZIO_TYPE_MLEC_WRITE_DATA, ZIO_PRIORITY_NOW, flags, vd, 0, NULL,
+		    ZIO_STAGE_OPEN, ZIO_IOCTL_PIPELINE);
+	} else if (vd->vdev_children == 0) {
 		zio = zio_create(pio, spa, 0, NULL, NULL, 0, 0, done, private,
 		    ZIO_TYPE_IOCTL, ZIO_PRIORITY_NOW, flags, vd, 0, NULL,
 		    ZIO_STAGE_OPEN, ZIO_IOCTL_PIPELINE);
@@ -2165,6 +2169,7 @@ __zio_execute(zio_t *zio)
 	ASSERT3U(zio->io_queued_timestamp, >, 0);
 
 	while (zio->io_stage < ZIO_STAGE_DONE) {
+		zfs_dbgmsg("zio execute stage %s", zio->io_stage);
 		enum zio_stage pipeline = zio->io_pipeline;
 		enum zio_stage stage = zio->io_stage;
 
@@ -2180,6 +2185,8 @@ __zio_execute(zio_t *zio)
 
 		ASSERT(stage <= ZIO_STAGE_DONE);
 
+		zfs_dbgmsg("Passed initial assertion");
+
 		/*
 		 * If we are in interrupt context and this pipeline stage
 		 * will grab a config lock that is held across I/O,
@@ -2191,6 +2198,7 @@ __zio_execute(zio_t *zio)
 		 */
 		if ((stage & ZIO_BLOCKING_STAGES) && zio->io_vd == NULL &&
 		    zio_taskq_member(zio, ZIO_TASKQ_INTERRUPT)) {
+			zfs_dbgmsg("We are cutting the line");
 			boolean_t cut = (stage == ZIO_STAGE_VDEV_IO_START) ?
 			    zio_requeue_io_start_cut_in_line : B_FALSE;
 			zio_taskq_dispatch(zio, ZIO_TASKQ_ISSUE, cut);
@@ -2202,6 +2210,7 @@ __zio_execute(zio_t *zio)
 		 * the zio must be issued asynchronously to prevent overflow.
 		 */
 		if (zio_execute_stack_check(zio)) {
+			zfs_dbgmsg("Async execution");
 			boolean_t cut = (stage == ZIO_STAGE_VDEV_IO_START) ?
 			    zio_requeue_io_start_cut_in_line : B_FALSE;
 			zio_taskq_dispatch(zio, ZIO_TASKQ_ISSUE, cut);
@@ -2216,6 +2225,7 @@ __zio_execute(zio_t *zio)
 		 * (typically the same as this one), or NULL if we should
 		 * stop.
 		 */
+		zfs_dbgmsg("Executing zio pipeline %d", highbit64(stage) - 1);
 		zio = zio_pipeline[highbit64(stage) - 1](zio);
 
 		if (zio == NULL)
