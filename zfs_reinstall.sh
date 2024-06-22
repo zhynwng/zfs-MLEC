@@ -28,7 +28,7 @@ sudo make install
 sudo ldconfig
 sudo depmod
 
-sudo ./scripts/zfs.sh 
+sudo ./scripts/zfs.sh -u
 sudo systemctl enable zfs.target zfs-import.target \
     zfs-mount.service zfs-import-cache.service zfs-import-scan.service
 sudo modprobe zfs
