@@ -371,7 +371,15 @@ typedef enum bp_embedded_type {
  * DMU object type, and birth times are all also stored for holes that
  * were written to at some point (i.e. were punched after having been filled).
  */
-  
+typedef struct blkptr {
+	dva_t		blk_dva[SPA_DVAS_PER_BP]; /* Data Virtual Addresses */
+	uint64_t	blk_prop;	/* size, compression, type, etc	    */
+	uint64_t	blk_pad[2];	/* Extra space for the future	    */
+	uint64_t	blk_phys_birth;	/* txg when block was allocated	    */
+	uint64_t	blk_birth;	/* transaction group at birth	    */
+	uint64_t	blk_fill;	/* fill count			    */
+	zio_cksum_t	blk_cksum;	/* 256-bit checksum		    */
+} blkptr_t;
 /*
  * Macros to get and set fields in a bp or DVA.
  */
