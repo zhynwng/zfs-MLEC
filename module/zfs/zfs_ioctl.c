@@ -6979,10 +6979,11 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 }
 
 static const zfs_ioc_key_t zfs_keys_mlec_test[] = {
-	{"mybinarydata",	DATA_TYPE_ANY,	0},
+	{"mybinarydata", DATA_TYPE_ANY,	0},
 	{"objset_id", DATA_TYPE_UINT64, 0},
 	{"dn_object_id", DATA_TYPE_UINT64, 0},
-	{"optional",	DATA_TYPE_NVLIST,	ZK_OPTIONAL},
+	{"blk_id", DATA_TYPE_UINT64, 0},
+	{"optional", DATA_TYPE_NVLIST, ZK_OPTIONAL},
 };
 
 static int
@@ -7007,7 +7008,12 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		return 1;
 	}
 
-	zfs_dbgmsg("zfs_mlec_test() is called in ZFS kernel module with objset id %d\n", objset_id);
+	uint64_t blk_id;
+	if (nvlist_lookup_int64(innvl, "blk_id", &blk_id)) {
+		return 1;
+	}
+
+	zfs_dbgmsg("zfs_mlec_test() is called with objset %d, dn %d, blk %d\n", objset_id, dn_object_id, blk_id);
 
 	// Now we should identify the block, row, and column, and call repair
 	// Reference to zio.c:zio_write() to how to initialize a zio write
@@ -7026,10 +7032,14 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 
 	// 3. Find the dnode that is associated with the input data
 	dsl_dataset_t *dsl_dataset;
-	dsl_dataset_hold_obj(spa->spa_dsl_pool, objset_id, NULL, dsl_dataset);
+	dsl_dataset_hold_obj(spa->spa_dsl_pool, objset_id, FTAG, &dsl_dataset);
 
-	// 4. Find the blkptr pointing to the block that require repair
-	dnode_hold(dsl_dataset->ds_objset, )
+	// 4. Find the dnode pointing to the FILE that we want to repair
+	dnode_t *dnode_repair;
+	dnode_hold(dsl_dataset->ds_objset, dn_object_id, FTAG, &dnode_repair);
+
+	// 5. Find the blkptr pointing to the ACTUAL BLOCK that we are writing the data to
+	blkptr_t *blk = dnode_repair->dn_phys->dn_blkptr[blk_id];
 
 	// 4. Get the binary data into abd
 	abd_t *repair_adb = abd_alloc_for_io(retrieved_data_size, B_FALSE);	
@@ -7040,14 +7050,14 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	pio->io_type = ZIO_TYPE_MLEC_WRITE_DATA;
 
 	// 6. We need to find the blkptr
-	zio_t *repair_zio = zio_rewrite(pio, spa, 0, )
+	// zio_t *repair_zio = zio_rewrite(pio, spa, 0, )
 	zio_t *repair_zio = zio_ioctl(pio, spa, vdev_top, 0, NULL, NULL, ZIO_FLAG_CANFAIL);
 	repair_zio->io_abd = repair_adb;
 
 	zfs_dbgmsg("abd created and copied from buffer and zio allocated");
 
 	// 5. Call the zio pipeline
-	zio_nowait(repair_zio);
+	// zio_nowait(repair_zio);
 
 	// Close the spa, otherwise the pool is always busy
 	dsl_dataset_rele(dsl_dataset, NULL);
