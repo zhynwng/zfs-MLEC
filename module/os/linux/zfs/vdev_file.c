@@ -239,6 +239,7 @@ vdev_file_io_fsync(void *arg)
 static void
 vdev_file_io_start(zio_t *zio)
 {
+	zfs_dbgmsg("vdev_file_io_start called");
 	vdev_t *vd = zio->io_vd;
 	vdev_file_t *vf = vd->vdev_tsd;
 

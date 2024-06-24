@@ -6994,7 +6994,6 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
         // No need to free, if error code != 1, the tear down function will free the innvl for us
         return 1;
     }
-
 	zfs_dbgmsg("zfs_mlec_test() is called in ZFS kernel module with %s inputs\n", retrieved_data);
 
 	// Now we should identify the block, row, and column, and call repair
@@ -7012,20 +7011,26 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		vdev_top->vdev_children,
 		vdev_top->vdev_child[0]->vdev_physpath);
 
+	// 3. Find the dnode that is associated with the input data
+	blkptr block_to_repair = dsl_dataset_get_blkptr
+
 	// 4. Get the binary data into abd
 	abd_t *repair_adb = abd_alloc_for_io(retrieved_data_size, B_FALSE);	
 	abd_copy_from_buf(repair_adb, retrieved_data, retrieved_data_size);
 
-	zio_t *pio = zio_null(NULL, spa, vdev_top, NULL, NULL, ZIO_FLAG_CANFAIL);
+	// 5. We will use the rewrite pipeline
+	zio_t *pio = zio_root(spa, NULL, NULL, ZIO_FLAG_CANFAIL);
 	pio->io_type = ZIO_TYPE_MLEC_WRITE_DATA;
 
+	// 6. We need to find the blkptr
+	zio_t *repair_zio = zio_rewrite(pio, spa, 0, )
 	zio_t *repair_zio = zio_ioctl(pio, spa, vdev_top, 0, NULL, NULL, ZIO_FLAG_CANFAIL);
 	repair_zio->io_abd = repair_adb;
 
 	zfs_dbgmsg("abd created and copied from buffer and zio allocated");
 
 	// 5. Call the zio pipeline
-	zio_nowait(repair_zio);	
+	zio_nowait(repair_zio);
 
 	// Close the spa, otherwise the pool is always busy
 	spa_close(spa, FTAG);
@@ -7044,7 +7049,6 @@ static void
 zfs_ioctl_init(void)
 {
 	// MLEC stuff
-
 	zfs_ioctl_register("mlec-test", ZFS_MLEC_TEST,
 		zfs_mlec_test, zfs_mlec_test_secpolicy, NO_NAME,
 		POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_mlec_test, ARRAY_SIZE(zfs_keys_mlec_test));
@@ -7544,6 +7548,7 @@ zfsdev_minor_alloc(void)
 long
 zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 {
+	zfs_dbgmsg("zfsdev_ioctl_common called with vecnum %d", vecnum);
 	int error, cmd;
 	const zfs_ioc_vec_t *vec;
 	char *saved_poolname = NULL;

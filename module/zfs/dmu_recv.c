@@ -71,16 +71,18 @@ int zfs_recv_write_batch_size = 1024 * 1024;
 static char *dmu_recv_tag = "dmu_recv_tag";
 const char *recv_clone_name = "%recv";
 
-typedef enum {
+typedef enum
+{
 	ORNS_NO,
 	ORNS_YES,
 	ORNS_MAYBE
 } or_need_sync_t;
 
 static int receive_read_payload_and_next_header(dmu_recv_cookie_t *ra, int len,
-    void *buf);
+												void *buf);
 
-struct receive_record_arg {
+struct receive_record_arg
+{
 	dmu_replay_record_t header;
 	void *payload; /* Pointer to a buffer containing the payload */
 	/*
@@ -89,12 +91,13 @@ struct receive_record_arg {
 	 */
 	abd_t *abd;
 	int payload_size;
-	uint64_t bytes_read; /* bytes read from stream when record created */
+	uint64_t bytes_read;  /* bytes read from stream when record created */
 	boolean_t eos_marker; /* Marks the end of the stream */
 	bqueue_node_t node;
 };
 
-struct receive_writer_arg {
+struct receive_writer_arg
+{
 	objset_t *os;
 	boolean_t byteswap;
 	bqueue_t q;
@@ -109,9 +112,9 @@ struct receive_writer_arg {
 
 	int err;
 	boolean_t resumable;
-	boolean_t raw;   /* DMU_BACKUP_FEATURE_RAW set */
+	boolean_t raw;	 /* DMU_BACKUP_FEATURE_RAW set */
 	boolean_t spill; /* DRR_FLAG_SPILL_BLOCK set */
-	boolean_t full;  /* this is a full send stream */
+	boolean_t full;	 /* this is a full send stream */
 	uint64_t last_object;
 	uint64_t last_offset;
 	uint64_t max_object; /* highest object ID referenced in stream */
@@ -132,7 +135,8 @@ struct receive_writer_arg {
 	or_need_sync_t or_need_sync;
 };
 
-typedef struct dmu_recv_begin_arg {
+typedef struct dmu_recv_begin_arg
+{
 	const char *drba_origin;
 	dmu_recv_cookie_t *drba_cookie;
 	cred_t *drba_cred;
@@ -143,12 +147,13 @@ typedef struct dmu_recv_begin_arg {
 static void
 byteswap_record(dmu_replay_record_t *drr)
 {
-#define	DO64(X) (drr->drr_u.X = BSWAP_64(drr->drr_u.X))
-#define	DO32(X) (drr->drr_u.X = BSWAP_32(drr->drr_u.X))
+#define DO64(X) (drr->drr_u.X = BSWAP_64(drr->drr_u.X))
+#define DO32(X) (drr->drr_u.X = BSWAP_32(drr->drr_u.X))
 	drr->drr_type = BSWAP_32(drr->drr_type);
 	drr->drr_payloadlen = BSWAP_32(drr->drr_payloadlen);
 
-	switch (drr->drr_type) {
+	switch (drr->drr_type)
+	{
 	case DRR_BEGIN:
 		DO64(drr_begin.drr_magic);
 		DO64(drr_begin.drr_versioninfo);
@@ -223,7 +228,8 @@ byteswap_record(dmu_replay_record_t *drr)
 		break;
 	}
 
-	if (drr->drr_type != DRR_BEGIN) {
+	if (drr->drr_type != DRR_BEGIN)
+	{
 		ZIO_CHECKSUM_BSWAP(&drr->drr_u.drr_checksum.drr_checksum);
 	}
 
@@ -234,7 +240,8 @@ byteswap_record(dmu_replay_record_t *drr)
 static boolean_t
 redact_snaps_contains(uint64_t *snaps, uint64_t num_snaps, uint64_t guid)
 {
-	for (int i = 0; i < num_snaps; i++) {
+	for (int i = 0; i < num_snaps; i++)
+	{
 		if (snaps[i] == guid)
 			return (B_TRUE);
 	}
@@ -248,20 +255,23 @@ redact_snaps_contains(uint64_t *snaps, uint64_t num_snaps, uint64_t guid)
  */
 static boolean_t
 compatible_redact_snaps(uint64_t *origin_snaps, uint64_t origin_num_snaps,
-    uint64_t *redact_snaps, uint64_t num_redact_snaps)
+						uint64_t *redact_snaps, uint64_t num_redact_snaps)
 {
 	/*
 	 * Short circuit the comparison; if we are redacted with respect to
 	 * more snapshots than the origin, we can't be redacted with respect
 	 * to a subset.
 	 */
-	if (num_redact_snaps > origin_num_snaps) {
+	if (num_redact_snaps > origin_num_snaps)
+	{
 		return (B_FALSE);
 	}
 
-	for (int i = 0; i < num_redact_snaps; i++) {
+	for (int i = 0; i < num_redact_snaps; i++)
+	{
 		if (!redact_snaps_contains(origin_snaps, origin_num_snaps,
-		    redact_snaps[i])) {
+								   redact_snaps[i]))
+		{
 			return (B_FALSE);
 		}
 	}
@@ -288,11 +298,12 @@ redact_check(dmu_recv_begin_arg_t *drba, dsl_dataset_t *origin)
 		return (ret);
 
 	VERIFY(dsl_dataset_get_uint64_array_feature(origin,
-	    SPA_FEATURE_REDACTED_DATASETS, &origin_num_snaps, &origin_snaps));
+												SPA_FEATURE_REDACTED_DATASETS, &origin_num_snaps, &origin_snaps));
 
 	if (nvlist_lookup_uint64_array(drc->drc_begin_nvl,
-	    BEGINNV_REDACT_FROM_SNAPS, &redact_snaps, &numredactsnaps) ==
-	    0) {
+								   BEGINNV_REDACT_FROM_SNAPS, &redact_snaps, &numredactsnaps) ==
+		0)
+	{
 		/*
 		 * If the send stream was sent from the redaction bookmark or
 		 * the redacted version of the dataset, then we're safe.  Verify
@@ -300,10 +311,13 @@ redact_check(dmu_recv_begin_arg_t *drba, dsl_dataset_t *origin)
 		 * redacted dataset.
 		 */
 		if (!compatible_redact_snaps(origin_snaps, origin_num_snaps,
-		    redact_snaps, numredactsnaps)) {
+									 redact_snaps, numredactsnaps))
+		{
 			err = EINVAL;
 		}
-	} else if (featureflags & DMU_BACKUP_FEATURE_REDACTED) {
+	}
+	else if (featureflags & DMU_BACKUP_FEATURE_REDACTED)
+	{
 		/*
 		 * If the stream is redacted, it must be redacted with respect
 		 * to a subset of what the origin is redacted with respect to.
@@ -311,14 +325,17 @@ redact_check(dmu_recv_begin_arg_t *drba, dsl_dataset_t *origin)
 		 * send.
 		 */
 		err = nvlist_lookup_uint64_array(drc->drc_begin_nvl,
-		    BEGINNV_REDACT_SNAPS, &redact_snaps, &numredactsnaps);
+										 BEGINNV_REDACT_SNAPS, &redact_snaps, &numredactsnaps);
 
 		if (err != 0 || !compatible_redact_snaps(origin_snaps,
-		    origin_num_snaps, redact_snaps, numredactsnaps)) {
+												 origin_num_snaps, redact_snaps, numredactsnaps))
+		{
 			err = EINVAL;
 		}
-	} else if (!redact_snaps_contains(origin_snaps, origin_num_snaps,
-	    drrb->drr_toguid)) {
+	}
+	else if (!redact_snaps_contains(origin_snaps, origin_num_snaps,
+									drrb->drr_toguid))
+	{
 		/*
 		 * If the stream isn't redacted but the origin is, this must be
 		 * one of the snapshots the origin is redacted with respect to.
@@ -343,14 +360,14 @@ static int
 recv_check_large_blocks(dsl_dataset_t *ds, uint64_t featureflags)
 {
 	if (dsl_dataset_feature_is_active(ds, SPA_FEATURE_LARGE_BLOCKS) &&
-	    !(featureflags & DMU_BACKUP_FEATURE_LARGE_BLOCKS))
+		!(featureflags & DMU_BACKUP_FEATURE_LARGE_BLOCKS))
 		return (SET_ERROR(ZFS_ERR_STREAM_LARGE_BLOCK_MISMATCH));
 	return (0);
 }
 
 static int
 recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
-    uint64_t fromguid, uint64_t featureflags)
+							   uint64_t fromguid, uint64_t featureflags)
 {
 	uint64_t val;
 	uint64_t children;
@@ -362,8 +379,8 @@ recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
 
 	/* Temporary clone name must not exist. */
 	error = zap_lookup(dp->dp_meta_objset,
-	    dsl_dir_phys(ds->ds_dir)->dd_child_dir_zapobj, recv_clone_name,
-	    8, 1, &val);
+					   dsl_dir_phys(ds->ds_dir)->dd_child_dir_zapobj, recv_clone_name,
+					   8, 1, &val);
 	if (error != ENOENT)
 		return (error == 0 ? SET_ERROR(EBUSY) : error);
 
@@ -373,18 +390,18 @@ recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
 
 	/* New snapshot name must not exist. */
 	error = zap_lookup(dp->dp_meta_objset,
-	    dsl_dataset_phys(ds)->ds_snapnames_zapobj,
-	    drba->drba_cookie->drc_tosnap, 8, 1, &val);
+					   dsl_dataset_phys(ds)->ds_snapnames_zapobj,
+					   drba->drba_cookie->drc_tosnap, 8, 1, &val);
 	if (error != ENOENT)
 		return (error == 0 ? SET_ERROR(EEXIST) : error);
 
 	/* Must not have children if receiving a ZVOL. */
 	error = zap_count(dp->dp_meta_objset,
-	    dsl_dir_phys(ds->ds_dir)->dd_child_dir_zapobj, &children);
+					  dsl_dir_phys(ds->ds_dir)->dd_child_dir_zapobj, &children);
 	if (error != 0)
 		return (error);
 	if (drba->drba_cookie->drc_drrb->drr_type != DMU_OST_ZFS &&
-	    children > 0)
+		children > 0)
 		return (SET_ERROR(ZFS_ERR_WRONG_PARENT));
 
 	/*
@@ -397,11 +414,12 @@ recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
 	 * against that limit.
 	 */
 	error = dsl_fs_ss_limit_check(ds->ds_dir, 1, ZFS_PROP_SNAPSHOT_LIMIT,
-	    NULL, drba->drba_cred, drba->drba_proc);
+								  NULL, drba->drba_cred, drba->drba_proc);
 	if (error != 0)
 		return (error);
 
-	if (fromguid != 0) {
+	if (fromguid != 0)
+	{
 		dsl_dataset_t *snap;
 		uint64_t obj = dsl_dataset_phys(ds)->ds_prev_snap_obj;
 
@@ -414,12 +432,14 @@ recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
 			return (SET_ERROR(EINVAL));
 
 		/* Find snapshot in this dir that matches fromguid. */
-		while (obj != 0) {
+		while (obj != 0)
+		{
 			error = dsl_dataset_hold_obj(dp, obj, FTAG,
-			    &snap);
+										 &snap);
 			if (error != 0)
 				return (SET_ERROR(ENODEV));
-			if (snap->ds_dir != ds->ds_dir) {
+			if (snap->ds_dir != ds->ds_dir)
+			{
 				dsl_dataset_rele(snap, FTAG);
 				return (SET_ERROR(ENODEV));
 			}
@@ -431,9 +451,12 @@ recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
 		if (obj == 0)
 			return (SET_ERROR(ENODEV));
 
-		if (drba->drba_cookie->drc_force) {
+		if (drba->drba_cookie->drc_force)
+		{
 			drba->drba_cookie->drc_fromsnapobj = obj;
-		} else {
+		}
+		else
+		{
 			/*
 			 * If we are not forcing, there must be no
 			 * changes since fromsnap. Raw sends have an
@@ -443,31 +466,37 @@ recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
 			 * work properly.
 			 */
 			if (dsl_dataset_modified_since_snap(ds, snap) ||
-			    (raw &&
-			    dsl_dataset_phys(ds)->ds_prev_snap_obj !=
-			    snap->ds_object)) {
+				(raw &&
+				 dsl_dataset_phys(ds)->ds_prev_snap_obj !=
+					 snap->ds_object))
+			{
 				dsl_dataset_rele(snap, FTAG);
 				return (SET_ERROR(ETXTBSY));
 			}
 			drba->drba_cookie->drc_fromsnapobj =
-			    ds->ds_prev->ds_object;
+				ds->ds_prev->ds_object;
 		}
 
 		if (dsl_dataset_feature_is_active(snap,
-		    SPA_FEATURE_REDACTED_DATASETS) && !redact_check(drba,
-		    snap)) {
+										  SPA_FEATURE_REDACTED_DATASETS) &&
+			!redact_check(drba,
+						  snap))
+		{
 			dsl_dataset_rele(snap, FTAG);
 			return (SET_ERROR(EINVAL));
 		}
 
 		error = recv_check_large_blocks(snap, featureflags);
-		if (error != 0) {
+		if (error != 0)
+		{
 			dsl_dataset_rele(snap, FTAG);
 			return (error);
 		}
 
 		dsl_dataset_rele(snap, FTAG);
-	} else {
+	}
+	else
+	{
 		/* if full, then must be forced */
 		if (!drba->drba_cookie->drc_force)
 			return (SET_ERROR(EEXIST));
@@ -485,12 +514,13 @@ recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
 		 * Perform the same encryption checks we would if
 		 * we were creating a new dataset from scratch.
 		 */
-		if (!raw) {
+		if (!raw)
+		{
 			boolean_t will_encrypt;
 
 			error = dmu_objset_create_crypt_check(
-			    ds->ds_dir->dd_parent, drba->drba_dcp,
-			    &will_encrypt);
+				ds->ds_dir->dd_parent, drba->drba_dcp,
+				&will_encrypt);
 			if (error != 0)
 				return (error);
 
@@ -517,13 +547,14 @@ recv_begin_check_feature_flags_impl(uint64_t featureflags, spa_t *spa)
 	/*
 	 * Check if there are any unsupported feature flags.
 	 */
-	if (!DMU_STREAM_SUPPORTED(featureflags)) {
+	if (!DMU_STREAM_SUPPORTED(featureflags))
+	{
 		return (SET_ERROR(ZFS_ERR_UNKNOWN_SEND_STREAM_FEATURE));
 	}
 
 	/* Verify pool version supports SA if SA_SPILL feature set */
 	if ((featureflags & DMU_BACKUP_FEATURE_SA_SPILL) &&
-	    spa_version(spa) < SPA_VERSION_SA)
+		spa_version(spa) < SPA_VERSION_SA)
 		return (SET_ERROR(ENOTSUP));
 
 	/*
@@ -534,19 +565,19 @@ recv_begin_check_feature_flags_impl(uint64_t featureflags, spa_t *spa)
 	 * receive process.
 	 */
 	if ((featureflags & DMU_BACKUP_FEATURE_LZ4) &&
-	    !spa_feature_is_enabled(spa, SPA_FEATURE_LZ4_COMPRESS))
+		!spa_feature_is_enabled(spa, SPA_FEATURE_LZ4_COMPRESS))
 		return (SET_ERROR(ENOTSUP));
 	if ((featureflags & DMU_BACKUP_FEATURE_ZSTD) &&
-	    !spa_feature_is_enabled(spa, SPA_FEATURE_ZSTD_COMPRESS))
+		!spa_feature_is_enabled(spa, SPA_FEATURE_ZSTD_COMPRESS))
 		return (SET_ERROR(ENOTSUP));
 	if ((featureflags & DMU_BACKUP_FEATURE_EMBED_DATA) &&
-	    !spa_feature_is_enabled(spa, SPA_FEATURE_EMBEDDED_DATA))
+		!spa_feature_is_enabled(spa, SPA_FEATURE_EMBEDDED_DATA))
 		return (SET_ERROR(ENOTSUP));
 	if ((featureflags & DMU_BACKUP_FEATURE_LARGE_BLOCKS) &&
-	    !spa_feature_is_enabled(spa, SPA_FEATURE_LARGE_BLOCKS))
+		!spa_feature_is_enabled(spa, SPA_FEATURE_LARGE_BLOCKS))
 		return (SET_ERROR(ENOTSUP));
 	if ((featureflags & DMU_BACKUP_FEATURE_LARGE_DNODE) &&
-	    !spa_feature_is_enabled(spa, SPA_FEATURE_LARGE_DNODE))
+		!spa_feature_is_enabled(spa, SPA_FEATURE_LARGE_DNODE))
 		return (SET_ERROR(ENOTSUP));
 
 	/*
@@ -554,7 +585,7 @@ recv_begin_check_feature_flags_impl(uint64_t featureflags, spa_t *spa)
 	 * enabled.
 	 */
 	if ((featureflags & DMU_BACKUP_FEATURE_REDACTED) &&
-	    !spa_feature_is_enabled(spa, SPA_FEATURE_REDACTED_DATASETS))
+		!spa_feature_is_enabled(spa, SPA_FEATURE_REDACTED_DATASETS))
 		return (SET_ERROR(ENOTSUP));
 
 	return (0);
@@ -579,9 +610,9 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 	ASSERT(!(featureflags & DMU_BACKUP_FEATURE_RESUMING));
 
 	if (DMU_GET_STREAM_HDRTYPE(drrb->drr_versioninfo) ==
-	    DMU_COMPOUNDSTREAM ||
-	    drrb->drr_type >= DMU_OST_NUMTYPES ||
-	    ((flags & DRR_FLAG_CLONE) && drba->drba_origin == NULL))
+			DMU_COMPOUNDSTREAM ||
+		drrb->drr_type >= DMU_OST_NUMTYPES ||
+		((flags & DRR_FLAG_CLONE) && drba->drba_origin == NULL))
 		return (SET_ERROR(EINVAL));
 
 	error = recv_begin_check_feature_flags_impl(featureflags, dp->dp_spa);
@@ -590,10 +621,11 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 
 	/* Resumable receives require extensible datasets */
 	if (drba->drba_cookie->drc_resumable &&
-	    !spa_feature_is_enabled(dp->dp_spa, SPA_FEATURE_EXTENSIBLE_DATASET))
+		!spa_feature_is_enabled(dp->dp_spa, SPA_FEATURE_EXTENSIBLE_DATASET))
 		return (SET_ERROR(ENOTSUP));
 
-	if (featureflags & DMU_BACKUP_FEATURE_RAW) {
+	if (featureflags & DMU_BACKUP_FEATURE_RAW)
+	{
 		/* raw receives require the encryption feature */
 		if (!spa_feature_is_enabled(dp->dp_spa, SPA_FEATURE_ENCRYPTION))
 			return (SET_ERROR(ENOTSUP));
@@ -605,32 +637,39 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 		/* raw receives require spill block allocation flag */
 		if (!(flags & DRR_FLAG_SPILL_BLOCK))
 			return (SET_ERROR(ZFS_ERR_SPILL_BLOCK_FLAG_MISSING));
-	} else {
+	}
+	else
+	{
 		/*
 		 * We support unencrypted datasets below encrypted ones now,
 		 * so add the DS_HOLD_FLAG_DECRYPT flag only if we are dealing
 		 * with a dataset we may encrypt.
 		 */
 		if (drba->drba_dcp == NULL ||
-		    drba->drba_dcp->cp_crypt != ZIO_CRYPT_OFF) {
+			drba->drba_dcp->cp_crypt != ZIO_CRYPT_OFF)
+		{
 			dsflags |= DS_HOLD_FLAG_DECRYPT;
 		}
 	}
 
 	error = dsl_dataset_hold_flags(dp, tofs, dsflags, FTAG, &ds);
-	if (error == 0) {
+	if (error == 0)
+	{
 		/* target fs already exists; recv into temp clone */
 
 		/* Can't recv a clone into an existing fs */
-		if (flags & DRR_FLAG_CLONE || drba->drba_origin) {
+		if (flags & DRR_FLAG_CLONE || drba->drba_origin)
+		{
 			dsl_dataset_rele_flags(ds, dsflags, FTAG);
 			return (SET_ERROR(EINVAL));
 		}
 
 		error = recv_begin_check_existing_impl(drba, ds, fromguid,
-		    featureflags);
+											   featureflags);
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
-	} else if (error == ENOENT) {
+	}
+	else if (error == ENOENT)
+	{
 		/* target fs does not exist; must be a full backup or clone */
 		char buf[ZFS_MAX_DATASET_NAME_LEN];
 		objset_t *os;
@@ -640,7 +679,7 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 		 * target fs, so fail the recv.
 		 */
 		if (fromguid != 0 && !((flags & DRR_FLAG_CLONE) ||
-		    drba->drba_origin))
+							   drba->drba_origin))
 			return (SET_ERROR(ENOENT));
 
 		/*
@@ -649,18 +688,19 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 		 * records, reject it.
 		 */
 		if (fromguid == 0 && drba->drba_origin != NULL &&
-		    !(flags & DRR_FLAG_FREERECORDS))
+			!(flags & DRR_FLAG_FREERECORDS))
 			return (SET_ERROR(EINVAL));
 
 		/* Open the parent of tofs */
-		ASSERT3U(strlen(tofs), <, sizeof (buf));
-		(void) strlcpy(buf, tofs, strrchr(tofs, '/') - tofs + 1);
+		ASSERT3U(strlen(tofs), <, sizeof(buf));
+		(void)strlcpy(buf, tofs, strrchr(tofs, '/') - tofs + 1);
 		error = dsl_dataset_hold(dp, buf, FTAG, &ds);
 		if (error != 0)
 			return (error);
 
 		if ((featureflags & DMU_BACKUP_FEATURE_RAW) == 0 &&
-		    drba->drba_origin == NULL) {
+			drba->drba_origin == NULL)
+		{
 			boolean_t will_encrypt;
 
 			/*
@@ -671,14 +711,16 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 			 * embedded data.
 			 */
 			error = dmu_objset_create_crypt_check(ds->ds_dir,
-			    drba->drba_dcp, &will_encrypt);
-			if (error != 0) {
+												  drba->drba_dcp, &will_encrypt);
+			if (error != 0)
+			{
 				dsl_dataset_rele(ds, FTAG);
 				return (error);
 			}
 
 			if (will_encrypt &&
-			    (featureflags & DMU_BACKUP_FEATURE_EMBED_DATA)) {
+				(featureflags & DMU_BACKUP_FEATURE_EMBED_DATA))
+			{
 				dsl_dataset_rele(ds, FTAG);
 				return (SET_ERROR(EINVAL));
 			}
@@ -690,54 +732,63 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 		 * filesystems and increment those counts during begin_sync).
 		 */
 		error = dsl_fs_ss_limit_check(ds->ds_dir, 1,
-		    ZFS_PROP_FILESYSTEM_LIMIT, NULL,
-		    drba->drba_cred, drba->drba_proc);
-		if (error != 0) {
+									  ZFS_PROP_FILESYSTEM_LIMIT, NULL,
+									  drba->drba_cred, drba->drba_proc);
+		if (error != 0)
+		{
 			dsl_dataset_rele(ds, FTAG);
 			return (error);
 		}
 
 		error = dsl_fs_ss_limit_check(ds->ds_dir, 1,
-		    ZFS_PROP_SNAPSHOT_LIMIT, NULL,
-		    drba->drba_cred, drba->drba_proc);
-		if (error != 0) {
+									  ZFS_PROP_SNAPSHOT_LIMIT, NULL,
+									  drba->drba_cred, drba->drba_proc);
+		if (error != 0)
+		{
 			dsl_dataset_rele(ds, FTAG);
 			return (error);
 		}
 
 		/* can't recv below anything but filesystems (eg. no ZVOLs) */
 		error = dmu_objset_from_ds(ds, &os);
-		if (error != 0) {
+		if (error != 0)
+		{
 			dsl_dataset_rele(ds, FTAG);
 			return (error);
 		}
-		if (dmu_objset_type(os) != DMU_OST_ZFS) {
+		if (dmu_objset_type(os) != DMU_OST_ZFS)
+		{
 			dsl_dataset_rele(ds, FTAG);
 			return (SET_ERROR(ZFS_ERR_WRONG_PARENT));
 		}
 
-		if (drba->drba_origin != NULL) {
+		if (drba->drba_origin != NULL)
+		{
 			dsl_dataset_t *origin;
 			error = dsl_dataset_hold_flags(dp, drba->drba_origin,
-			    dsflags, FTAG, &origin);
-			if (error != 0) {
+										   dsflags, FTAG, &origin);
+			if (error != 0)
+			{
 				dsl_dataset_rele(ds, FTAG);
 				return (error);
 			}
-			if (!origin->ds_is_snapshot) {
+			if (!origin->ds_is_snapshot)
+			{
 				dsl_dataset_rele_flags(origin, dsflags, FTAG);
 				dsl_dataset_rele(ds, FTAG);
 				return (SET_ERROR(EINVAL));
 			}
 			if (dsl_dataset_phys(origin)->ds_guid != fromguid &&
-			    fromguid != 0) {
+				fromguid != 0)
+			{
 				dsl_dataset_rele_flags(origin, dsflags, FTAG);
 				dsl_dataset_rele(ds, FTAG);
 				return (SET_ERROR(ENODEV));
 			}
 
 			if (origin->ds_dir->dd_crypto_obj != 0 &&
-			    (featureflags & DMU_BACKUP_FEATURE_EMBED_DATA)) {
+				(featureflags & DMU_BACKUP_FEATURE_EMBED_DATA))
+			{
 				dsl_dataset_rele_flags(origin, dsflags, FTAG);
 				dsl_dataset_rele(ds, FTAG);
 				return (SET_ERROR(EINVAL));
@@ -749,18 +800,21 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 			 * origin.
 			 */
 			if (dsl_dataset_feature_is_active(origin,
-			    SPA_FEATURE_REDACTED_DATASETS)) {
-				if (!redact_check(drba, origin)) {
+											  SPA_FEATURE_REDACTED_DATASETS))
+			{
+				if (!redact_check(drba, origin))
+				{
 					dsl_dataset_rele_flags(origin, dsflags,
-					    FTAG);
+										   FTAG);
 					dsl_dataset_rele_flags(ds, dsflags,
-					    FTAG);
+										   FTAG);
 					return (SET_ERROR(EINVAL));
 				}
 			}
 
 			error = recv_check_large_blocks(ds, featureflags);
-			if (error != 0) {
+			if (error != 0)
+			{
 				dsl_dataset_rele_flags(origin, dsflags, FTAG);
 				dsl_dataset_rele_flags(ds, dsflags, FTAG);
 				return (error);
@@ -791,7 +845,7 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 	ds_hold_flags_t dsflags = DS_HOLD_FLAG_NONE;
 	int error;
 	uint64_t crflags = 0;
-	dsl_crypto_params_t dummy_dcp = { 0 };
+	dsl_crypto_params_t dummy_dcp = {0};
 	dsl_crypto_params_t *dcp = drba->drba_dcp;
 
 	if (drrb->drr_flags & DRR_FLAG_CI_DATA)
@@ -806,7 +860,8 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 	 * since the encryption parameters are already set in stone.
 	 */
 	if (dcp == NULL && drrb->drr_fromguid == 0 &&
-	    drba->drba_origin == NULL) {
+		drba->drba_origin == NULL)
+	{
 		ASSERT3P(dcp, ==, NULL);
 		dcp = &dummy_dcp;
 
@@ -815,45 +870,51 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 	}
 
 	error = dsl_dataset_hold_flags(dp, tofs, dsflags, FTAG, &ds);
-	if (error == 0) {
+	if (error == 0)
+	{
 		/* create temporary clone */
 		dsl_dataset_t *snap = NULL;
 
-		if (drba->drba_cookie->drc_fromsnapobj != 0) {
+		if (drba->drba_cookie->drc_fromsnapobj != 0)
+		{
 			VERIFY0(dsl_dataset_hold_obj(dp,
-			    drba->drba_cookie->drc_fromsnapobj, FTAG, &snap));
+										 drba->drba_cookie->drc_fromsnapobj, FTAG, &snap));
 			ASSERT3P(dcp, ==, NULL);
 		}
 		dsobj = dsl_dataset_create_sync(ds->ds_dir, recv_clone_name,
-		    snap, crflags, drba->drba_cred, dcp, tx);
+										snap, crflags, drba->drba_cred, dcp, tx);
 		if (drba->drba_cookie->drc_fromsnapobj != 0)
 			dsl_dataset_rele(snap, FTAG);
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
-	} else {
+	}
+	else
+	{
 		dsl_dir_t *dd;
 		const char *tail;
 		dsl_dataset_t *origin = NULL;
 
 		VERIFY0(dsl_dir_hold(dp, tofs, FTAG, &dd, &tail));
 
-		if (drba->drba_origin != NULL) {
+		if (drba->drba_origin != NULL)
+		{
 			VERIFY0(dsl_dataset_hold(dp, drba->drba_origin,
-			    FTAG, &origin));
+									 FTAG, &origin));
 			ASSERT3P(dcp, ==, NULL);
 		}
 
 		/* Create new dataset. */
 		dsobj = dsl_dataset_create_sync(dd, strrchr(tofs, '/') + 1,
-		    origin, crflags, drba->drba_cred, dcp, tx);
+										origin, crflags, drba->drba_cred, dcp, tx);
 		if (origin != NULL)
 			dsl_dataset_rele(origin, FTAG);
 		dsl_dir_rele(dd, FTAG);
 		drc->drc_newfs = B_TRUE;
 	}
 	VERIFY0(dsl_dataset_own_obj_force(dp, dsobj, dsflags, dmu_recv_tag,
-	    &newds));
+									  &newds));
 	if (dsl_dataset_feature_is_active(newds,
-	    SPA_FEATURE_REDACTED_DATASETS)) {
+									  SPA_FEATURE_REDACTED_DATASETS))
+	{
 		/*
 		 * If the origin dataset is redacted, the child will be redacted
 		 * when we create it.  We clear the new dataset's
@@ -861,54 +922,61 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 		 * in its information later.
 		 */
 		dsl_dataset_deactivate_feature(newds,
-		    SPA_FEATURE_REDACTED_DATASETS, tx);
+									   SPA_FEATURE_REDACTED_DATASETS, tx);
 	}
 	VERIFY0(dmu_objset_from_ds(newds, &os));
 
-	if (drc->drc_resumable) {
+	if (drc->drc_resumable)
+	{
 		dsl_dataset_zapify(newds, tx);
-		if (drrb->drr_fromguid != 0) {
+		if (drrb->drr_fromguid != 0)
+		{
 			VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_FROMGUID,
-			    8, 1, &drrb->drr_fromguid, tx));
+							8, 1, &drrb->drr_fromguid, tx));
 		}
 		VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_TOGUID,
-		    8, 1, &drrb->drr_toguid, tx));
+						8, 1, &drrb->drr_toguid, tx));
 		VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_TONAME,
-		    1, strlen(drrb->drr_toname) + 1, drrb->drr_toname, tx));
+						1, strlen(drrb->drr_toname) + 1, drrb->drr_toname, tx));
 		uint64_t one = 1;
 		uint64_t zero = 0;
 		VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_OBJECT,
-		    8, 1, &one, tx));
+						8, 1, &one, tx));
 		VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_OFFSET,
-		    8, 1, &zero, tx));
+						8, 1, &zero, tx));
 		VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_BYTES,
-		    8, 1, &zero, tx));
-		if (featureflags & DMU_BACKUP_FEATURE_LARGE_BLOCKS) {
+						8, 1, &zero, tx));
+		if (featureflags & DMU_BACKUP_FEATURE_LARGE_BLOCKS)
+		{
 			VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_LARGEBLOCK,
-			    8, 1, &one, tx));
+							8, 1, &one, tx));
 		}
-		if (featureflags & DMU_BACKUP_FEATURE_EMBED_DATA) {
+		if (featureflags & DMU_BACKUP_FEATURE_EMBED_DATA)
+		{
 			VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_EMBEDOK,
-			    8, 1, &one, tx));
+							8, 1, &one, tx));
 		}
-		if (featureflags & DMU_BACKUP_FEATURE_COMPRESSED) {
+		if (featureflags & DMU_BACKUP_FEATURE_COMPRESSED)
+		{
 			VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_COMPRESSOK,
-			    8, 1, &one, tx));
+							8, 1, &one, tx));
 		}
-		if (featureflags & DMU_BACKUP_FEATURE_RAW) {
+		if (featureflags & DMU_BACKUP_FEATURE_RAW)
+		{
 			VERIFY0(zap_add(mos, dsobj, DS_FIELD_RESUME_RAWOK,
-			    8, 1, &one, tx));
+							8, 1, &one, tx));
 		}
 
 		uint64_t *redact_snaps;
 		uint_t numredactsnaps;
 		if (nvlist_lookup_uint64_array(drc->drc_begin_nvl,
-		    BEGINNV_REDACT_FROM_SNAPS, &redact_snaps,
-		    &numredactsnaps) == 0) {
+									   BEGINNV_REDACT_FROM_SNAPS, &redact_snaps,
+									   &numredactsnaps) == 0)
+		{
 			VERIFY0(zap_add(mos, dsobj,
-			    DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS,
-			    sizeof (*redact_snaps), numredactsnaps,
-			    redact_snaps, tx));
+							DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS,
+							sizeof(*redact_snaps), numredactsnaps,
+							redact_snaps, tx));
 		}
 	}
 
@@ -917,18 +985,20 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 	 * DSL Crypto Key object in the dd. However, that will not be received
 	 * until dmu_recv_stream(), so we set the value manually for now.
 	 */
-	if (featureflags & DMU_BACKUP_FEATURE_RAW) {
+	if (featureflags & DMU_BACKUP_FEATURE_RAW)
+	{
 		os->os_encrypted = B_TRUE;
 		drba->drba_cookie->drc_raw = B_TRUE;
 	}
 
-	if (featureflags & DMU_BACKUP_FEATURE_REDACTED) {
+	if (featureflags & DMU_BACKUP_FEATURE_REDACTED)
+	{
 		uint64_t *redact_snaps;
 		uint_t numredactsnaps;
 		VERIFY0(nvlist_lookup_uint64_array(drc->drc_begin_nvl,
-		    BEGINNV_REDACT_SNAPS, &redact_snaps, &numredactsnaps));
+										   BEGINNV_REDACT_SNAPS, &redact_snaps, &numredactsnaps));
 		dsl_dataset_activate_redaction(newds, redact_snaps,
-		    numredactsnaps, tx);
+									   numredactsnaps, tx);
 	}
 
 	dmu_buf_will_dirty(newds->ds_dbuf, tx);
@@ -942,9 +1012,10 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 	 */
 	rrw_enter(&newds->ds_bp_rwlock, RW_READER, FTAG);
 	if (BP_IS_HOLE(dsl_dataset_get_blkptr(newds)) &&
-	    (featureflags & DMU_BACKUP_FEATURE_RAW) == 0) {
-		(void) dmu_objset_create_impl(dp->dp_spa,
-		    newds, dsl_dataset_get_blkptr(newds), drrb->drr_type, tx);
+		(featureflags & DMU_BACKUP_FEATURE_RAW) == 0)
+	{
+		(void)dmu_objset_create_impl(dp->dp_spa,
+									 newds, dsl_dataset_get_blkptr(newds), drrb->drr_type, tx);
 	}
 	rrw_exit(&newds->ds_bp_rwlock, FTAG);
 
@@ -971,8 +1042,8 @@ dmu_recv_resume_begin_check(void *arg, dmu_tx_t *tx)
 	ASSERT(drc->drc_featureflags & DMU_BACKUP_FEATURE_RESUMING);
 
 	if (DMU_GET_STREAM_HDRTYPE(drrb->drr_versioninfo) ==
-	    DMU_COMPOUNDSTREAM ||
-	    drrb->drr_type >= DMU_OST_NUMTYPES)
+			DMU_COMPOUNDSTREAM ||
+		drrb->drr_type >= DMU_OST_NUMTYPES)
 		return (SET_ERROR(EINVAL));
 
 	/*
@@ -980,25 +1051,29 @@ dmu_recv_resume_begin_check(void *arg, dmu_tx_t *tx)
 	 * checks during a previous attempt to receive the data.
 	 */
 	error = recv_begin_check_feature_flags_impl(drc->drc_featureflags,
-	    dp->dp_spa);
+												dp->dp_spa);
 	if (error != 0)
 		return (error);
 
 	/* 6 extra bytes for /%recv */
 	char recvname[ZFS_MAX_DATASET_NAME_LEN + 6];
 
-	(void) snprintf(recvname, sizeof (recvname), "%s/%s",
-	    tofs, recv_clone_name);
+	(void)snprintf(recvname, sizeof(recvname), "%s/%s",
+				   tofs, recv_clone_name);
 
-	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RAW) {
+	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RAW)
+	{
 		/* raw receives require spill block allocation flag */
 		if (!(drrb->drr_flags & DRR_FLAG_SPILL_BLOCK))
 			return (SET_ERROR(ZFS_ERR_SPILL_BLOCK_FLAG_MISSING));
-	} else {
+	}
+	else
+	{
 		dsflags |= DS_HOLD_FLAG_DECRYPT;
 	}
 
-	if (dsl_dataset_hold_flags(dp, recvname, dsflags, FTAG, &ds) != 0) {
+	if (dsl_dataset_hold_flags(dp, recvname, dsflags, FTAG, &ds) != 0)
+	{
 		/* %recv does not exist; continue in tofs */
 		error = dsl_dataset_hold_flags(dp, tofs, dsflags, FTAG, &ds);
 		if (error != 0)
@@ -1006,20 +1081,23 @@ dmu_recv_resume_begin_check(void *arg, dmu_tx_t *tx)
 	}
 
 	/* check that ds is marked inconsistent */
-	if (!DS_IS_INCONSISTENT(ds)) {
+	if (!DS_IS_INCONSISTENT(ds))
+	{
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
 		return (SET_ERROR(EINVAL));
 	}
 
 	/* check that there is resuming data, and that the toguid matches */
-	if (!dsl_dataset_is_zapified(ds)) {
+	if (!dsl_dataset_is_zapified(ds))
+	{
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
 		return (SET_ERROR(EINVAL));
 	}
 	uint64_t val;
 	error = zap_lookup(dp->dp_meta_objset, ds->ds_object,
-	    DS_FIELD_RESUME_TOGUID, sizeof (val), 1, &val);
-	if (error != 0 || drrb->drr_toguid != val) {
+					   DS_FIELD_RESUME_TOGUID, sizeof(val), 1, &val);
+	if (error != 0 || drrb->drr_toguid != val)
+	{
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
 		return (SET_ERROR(EINVAL));
 	}
@@ -1029,13 +1107,15 @@ dmu_recv_resume_begin_check(void *arg, dmu_tx_t *tx)
 	 * Note that nothing else can own the dataset (e.g. after the receive
 	 * fails) because it will be marked inconsistent.
 	 */
-	if (dsl_dataset_has_owner(ds)) {
+	if (dsl_dataset_has_owner(ds))
+	{
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
 		return (SET_ERROR(EBUSY));
 	}
 
 	/* There should not be any snapshots of this fs yet. */
-	if (ds->ds_prev != NULL && ds->ds_prev->ds_dir == ds->ds_dir) {
+	if (ds->ds_prev != NULL && ds->ds_prev->ds_dir == ds->ds_dir)
+	{
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
 		return (SET_ERROR(EINVAL));
 	}
@@ -1047,9 +1127,10 @@ dmu_recv_resume_begin_check(void *arg, dmu_tx_t *tx)
 
 	/* check that the origin matches */
 	val = 0;
-	(void) zap_lookup(dp->dp_meta_objset, ds->ds_object,
-	    DS_FIELD_RESUME_FROMGUID, sizeof (val), 1, &val);
-	if (drrb->drr_fromguid != val) {
+	(void)zap_lookup(dp->dp_meta_objset, ds->ds_object,
+					 DS_FIELD_RESUME_FROMGUID, sizeof(val), 1, &val);
+	if (drrb->drr_fromguid != val)
+	{
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
 		return (SET_ERROR(EINVAL));
 	}
@@ -1062,7 +1143,8 @@ dmu_recv_resume_begin_check(void *arg, dmu_tx_t *tx)
 	 * must have been redacted, and must have been redacted with respect to
 	 * the same snapshots.
 	 */
-	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_REDACTED) {
+	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_REDACTED)
+	{
 		uint64_t num_ds_redact_snaps;
 		uint64_t *ds_redact_snaps;
 
@@ -1070,22 +1152,26 @@ dmu_recv_resume_begin_check(void *arg, dmu_tx_t *tx)
 		uint64_t *stream_redact_snaps;
 
 		if (nvlist_lookup_uint64_array(drc->drc_begin_nvl,
-		    BEGINNV_REDACT_SNAPS, &stream_redact_snaps,
-		    &num_stream_redact_snaps) != 0) {
+									   BEGINNV_REDACT_SNAPS, &stream_redact_snaps,
+									   &num_stream_redact_snaps) != 0)
+		{
 			dsl_dataset_rele_flags(ds, dsflags, FTAG);
 			return (SET_ERROR(EINVAL));
 		}
 
 		if (!dsl_dataset_get_uint64_array_feature(ds,
-		    SPA_FEATURE_REDACTED_DATASETS, &num_ds_redact_snaps,
-		    &ds_redact_snaps)) {
+												  SPA_FEATURE_REDACTED_DATASETS, &num_ds_redact_snaps,
+												  &ds_redact_snaps))
+		{
 			dsl_dataset_rele_flags(ds, dsflags, FTAG);
 			return (SET_ERROR(EINVAL));
 		}
 
-		for (int i = 0; i < num_ds_redact_snaps; i++) {
+		for (int i = 0; i < num_ds_redact_snaps; i++)
+		{
 			if (!redact_snaps_contains(ds_redact_snaps,
-			    num_ds_redact_snaps, stream_redact_snaps[i])) {
+									   num_ds_redact_snaps, stream_redact_snaps[i]))
+			{
 				dsl_dataset_rele_flags(ds, dsflags, FTAG);
 				return (SET_ERROR(EINVAL));
 			}
@@ -1093,7 +1179,8 @@ dmu_recv_resume_begin_check(void *arg, dmu_tx_t *tx)
 	}
 
 	error = recv_check_large_blocks(ds, drc->drc_featureflags);
-	if (error != 0) {
+	if (error != 0)
+	{
 		dsl_dataset_rele_flags(ds, dsflags, FTAG);
 		return (error);
 	}
@@ -1114,27 +1201,30 @@ dmu_recv_resume_begin_sync(void *arg, dmu_tx_t *tx)
 	/* 6 extra bytes for /%recv */
 	char recvname[ZFS_MAX_DATASET_NAME_LEN + 6];
 
-	(void) snprintf(recvname, sizeof (recvname), "%s/%s", tofs,
-	    recv_clone_name);
+	(void)snprintf(recvname, sizeof(recvname), "%s/%s", tofs,
+				   recv_clone_name);
 
-	if (featureflags & DMU_BACKUP_FEATURE_RAW) {
+	if (featureflags & DMU_BACKUP_FEATURE_RAW)
+	{
 		drba->drba_cookie->drc_raw = B_TRUE;
-	} else {
+	}
+	else
+	{
 		dsflags |= DS_HOLD_FLAG_DECRYPT;
 	}
 
-	if (dsl_dataset_own_force(dp, recvname, dsflags, dmu_recv_tag, &ds)
-	    != 0) {
+	if (dsl_dataset_own_force(dp, recvname, dsflags, dmu_recv_tag, &ds) != 0)
+	{
 		/* %recv does not exist; continue in tofs */
 		VERIFY0(dsl_dataset_own_force(dp, tofs, dsflags, dmu_recv_tag,
-		    &ds));
+									  &ds));
 		drba->drba_cookie->drc_newfs = B_TRUE;
 	}
 
 	ASSERT(DS_IS_INCONSISTENT(ds));
 	rrw_enter(&ds->ds_bp_rwlock, RW_READER, FTAG);
 	ASSERT(!BP_IS_HOLE(dsl_dataset_get_blkptr(ds)) ||
-	    drba->drba_cookie->drc_raw);
+		   drba->drba_cookie->drc_raw);
 	rrw_exit(&ds->ds_bp_rwlock, FTAG);
 
 	drba->drba_cookie->drc_ds = ds;
@@ -1148,16 +1238,15 @@ dmu_recv_resume_begin_sync(void *arg, dmu_tx_t *tx)
  * NB: callers *MUST* call dmu_recv_stream() if dmu_recv_begin()
  * succeeds; otherwise we will leak the holds on the datasets.
  */
-int
-dmu_recv_begin(char *tofs, char *tosnap, dmu_replay_record_t *drr_begin,
-    boolean_t force, boolean_t resumable, nvlist_t *localprops,
-    nvlist_t *hidden_args, char *origin, dmu_recv_cookie_t *drc,
-    zfs_file_t *fp, offset_t *voffp)
+int dmu_recv_begin(char *tofs, char *tosnap, dmu_replay_record_t *drr_begin,
+				   boolean_t force, boolean_t resumable, nvlist_t *localprops,
+				   nvlist_t *hidden_args, char *origin, dmu_recv_cookie_t *drc,
+				   zfs_file_t *fp, offset_t *voffp)
 {
-	dmu_recv_begin_arg_t drba = { 0 };
+	dmu_recv_begin_arg_t drba = {0};
 	int err;
 
-	bzero(drc, sizeof (dmu_recv_cookie_t));
+	bzero(drc, sizeof(dmu_recv_cookie_t));
 	drc->drc_drr_begin = drr_begin;
 	drc->drc_drrb = &drr_begin->drr_u.drr_begin;
 	drc->drc_tosnap = tosnap;
@@ -1168,22 +1257,27 @@ dmu_recv_begin(char *tofs, char *tosnap, dmu_replay_record_t *drr_begin,
 	drc->drc_proc = curproc;
 	drc->drc_clone = (origin != NULL);
 
-	if (drc->drc_drrb->drr_magic == BSWAP_64(DMU_BACKUP_MAGIC)) {
+	if (drc->drc_drrb->drr_magic == BSWAP_64(DMU_BACKUP_MAGIC))
+	{
 		drc->drc_byteswap = B_TRUE;
-		(void) fletcher_4_incremental_byteswap(drr_begin,
-		    sizeof (dmu_replay_record_t), &drc->drc_cksum);
+		(void)fletcher_4_incremental_byteswap(drr_begin,
+											  sizeof(dmu_replay_record_t), &drc->drc_cksum);
 		byteswap_record(drr_begin);
-	} else if (drc->drc_drrb->drr_magic == DMU_BACKUP_MAGIC) {
-		(void) fletcher_4_incremental_native(drr_begin,
-		    sizeof (dmu_replay_record_t), &drc->drc_cksum);
-	} else {
+	}
+	else if (drc->drc_drrb->drr_magic == DMU_BACKUP_MAGIC)
+	{
+		(void)fletcher_4_incremental_native(drr_begin,
+											sizeof(dmu_replay_record_t), &drc->drc_cksum);
+	}
+	else
+	{
 		return (SET_ERROR(EINVAL));
 	}
 
 	drc->drc_fp = fp;
 	drc->drc_voff = *voffp;
 	drc->drc_featureflags =
-	    DMU_GET_FEATUREFLAGS(drc->drc_drrb->drr_versioninfo);
+		DMU_GET_FEATUREFLAGS(drc->drc_drrb->drr_versioninfo);
 
 	uint32_t payloadlen = drc->drc_drr_begin->drr_payloadlen;
 	void *payload = NULL;
@@ -1191,18 +1285,21 @@ dmu_recv_begin(char *tofs, char *tosnap, dmu_replay_record_t *drr_begin,
 		payload = kmem_alloc(payloadlen, KM_SLEEP);
 
 	err = receive_read_payload_and_next_header(drc, payloadlen,
-	    payload);
-	if (err != 0) {
+											   payload);
+	if (err != 0)
+	{
 		kmem_free(payload, payloadlen);
 		return (err);
 	}
-	if (payloadlen != 0) {
+	if (payloadlen != 0)
+	{
 		err = nvlist_unpack(payload, payloadlen, &drc->drc_begin_nvl,
-		    KM_SLEEP);
+							KM_SLEEP);
 		kmem_free(payload, payloadlen);
-		if (err != 0) {
+		if (err != 0)
+		{
 			kmem_free(drc->drc_next_rrd,
-			    sizeof (*drc->drc_next_rrd));
+					  sizeof(*drc->drc_next_rrd));
 			return (err);
 		}
 	}
@@ -1215,11 +1312,14 @@ dmu_recv_begin(char *tofs, char *tosnap, dmu_replay_record_t *drr_begin,
 	drba.drba_cred = CRED();
 	drba.drba_proc = curproc;
 
-	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RESUMING) {
+	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RESUMING)
+	{
 		err = dsl_sync_task(tofs,
-		    dmu_recv_resume_begin_check, dmu_recv_resume_begin_sync,
-		    &drba, 5, ZFS_SPACE_CHECK_NORMAL);
-	} else {
+							dmu_recv_resume_begin_check, dmu_recv_resume_begin_sync,
+							&drba, 5, ZFS_SPACE_CHECK_NORMAL);
+	}
+	else
+	{
 
 		/*
 		 * For non-raw, non-incremental, non-resuming receives the
@@ -1232,22 +1332,25 @@ dmu_recv_begin(char *tofs, char *tosnap, dmu_replay_record_t *drr_begin,
 		 * attempts to set these properties will fail as a result.
 		 */
 		if ((DMU_GET_FEATUREFLAGS(drc->drc_drrb->drr_versioninfo) &
-		    DMU_BACKUP_FEATURE_RAW) == 0 &&
-		    origin == NULL && drc->drc_drrb->drr_fromguid == 0) {
+			 DMU_BACKUP_FEATURE_RAW) == 0 &&
+			origin == NULL && drc->drc_drrb->drr_fromguid == 0)
+		{
 			err = dsl_crypto_params_create_nvlist(DCP_CMD_NONE,
-			    localprops, hidden_args, &drba.drba_dcp);
+												  localprops, hidden_args, &drba.drba_dcp);
 		}
 
-		if (err == 0) {
+		if (err == 0)
+		{
 			err = dsl_sync_task(tofs,
-			    dmu_recv_begin_check, dmu_recv_begin_sync,
-			    &drba, 5, ZFS_SPACE_CHECK_NORMAL);
+								dmu_recv_begin_check, dmu_recv_begin_sync,
+								&drba, 5, ZFS_SPACE_CHECK_NORMAL);
 			dsl_crypto_params_free(drba.drba_dcp, !!err);
 		}
 	}
 
-	if (err != 0) {
-		kmem_free(drc->drc_next_rrd, sizeof (*drc->drc_next_rrd));
+	if (err != 0)
+	{
+		kmem_free(drc->drc_next_rrd, sizeof(*drc->drc_next_rrd));
 		nvlist_free(drc->drc_begin_nvl);
 	}
 	return (err);
@@ -1263,14 +1366,16 @@ receive_read(dmu_recv_cookie_t *drc, int len, void *buf)
 	 * comment in dump_bytes.
 	 */
 	ASSERT(len % 8 == 0 ||
-	    (drc->drc_featureflags & DMU_BACKUP_FEATURE_RAW) != 0);
+		   (drc->drc_featureflags & DMU_BACKUP_FEATURE_RAW) != 0);
 
-	while (done < len) {
+	while (done < len)
+	{
 		ssize_t resid;
 		zfs_file_t *fp = drc->drc_fp;
 		int err = zfs_file_read(fp, (char *)buf + done,
-		    len - done, &resid);
-		if (resid == len - done) {
+								len - done, &resid);
+		if (resid == len - done)
+		{
 			/*
 			 * Note: ECKSUM or ZFS_ERR_STREAM_TRUNCATED indicates
 			 * that the receive was interrupted and can
@@ -1293,18 +1398,22 @@ receive_read(dmu_recv_cookie_t *drc, int len, void *buf)
 static inline uint8_t
 deduce_nblkptr(dmu_object_type_t bonus_type, uint64_t bonus_size)
 {
-	if (bonus_type == DMU_OT_SA) {
+	if (bonus_type == DMU_OT_SA)
+	{
 		return (1);
-	} else {
+	}
+	else
+	{
 		return (1 +
-		    ((DN_OLD_MAX_BONUSLEN -
-		    MIN(DN_OLD_MAX_BONUSLEN, bonus_size)) >> SPA_BLKPTRSHIFT));
+				((DN_OLD_MAX_BONUSLEN -
+				  MIN(DN_OLD_MAX_BONUSLEN, bonus_size)) >>
+				 SPA_BLKPTRSHIFT));
 	}
 }
 
 static void
 save_resume_state(struct receive_writer_arg *rwa,
-    uint64_t object, uint64_t offset, dmu_tx_t *tx)
+				  uint64_t object, uint64_t offset, dmu_tx_t *tx)
 {
 	int txgoff = dmu_tx_get_txg(tx) & TXG_MASK;
 
@@ -1330,9 +1439,9 @@ save_resume_state(struct receive_writer_arg *rwa,
 	 */
 	ASSERT3U(object, >=, rwa->os->os_dsl_dataset->ds_resume_object[txgoff]);
 	ASSERT(object != rwa->os->os_dsl_dataset->ds_resume_object[txgoff] ||
-	    offset >= rwa->os->os_dsl_dataset->ds_resume_offset[txgoff]);
+		   offset >= rwa->os->os_dsl_dataset->ds_resume_offset[txgoff]);
 	ASSERT3U(rwa->bytes_read, >=,
-	    rwa->os->os_dsl_dataset->ds_resume_bytes[txgoff]);
+			 rwa->os->os_dsl_dataset->ds_resume_bytes[txgoff]);
 
 	rwa->os->os_dsl_dataset->ds_resume_object[txgoff] = object;
 	rwa->os->os_dsl_dataset->ds_resume_offset[txgoff] = offset;
@@ -1341,8 +1450,8 @@ save_resume_state(struct receive_writer_arg *rwa,
 
 static int
 receive_object_is_same_generation(objset_t *os, uint64_t object,
-    dmu_object_type_t old_bonus_type, dmu_object_type_t new_bonus_type,
-    const void *new_bonus, boolean_t *samegenp)
+								  dmu_object_type_t old_bonus_type, dmu_object_type_t new_bonus_type,
+								  const void *new_bonus, boolean_t *samegenp)
 {
 	zfs_file_info_t zoi;
 	int err;
@@ -1352,7 +1461,7 @@ receive_object_is_same_generation(objset_t *os, uint64_t object,
 	if (err != 0)
 		return (err);
 	err = dmu_get_file_info(os, old_bonus_type, old_bonus_dbuf->db_data,
-	    &zoi);
+							&zoi);
 	dmu_buf_rele(old_bonus_dbuf, FTAG);
 	if (err != 0)
 		return (err);
@@ -1369,16 +1478,14 @@ receive_object_is_same_generation(objset_t *os, uint64_t object,
 
 static int
 receive_handle_existing_object(const struct receive_writer_arg *rwa,
-    const struct drr_object *drro, const dmu_object_info_t *doi,
-    const void *bonus_data,
-    uint64_t *object_to_hold, uint32_t *new_blksz)
+							   const struct drr_object *drro, const dmu_object_info_t *doi,
+							   const void *bonus_data,
+							   uint64_t *object_to_hold, uint32_t *new_blksz)
 {
-	uint32_t indblksz = drro->drr_indblkshift ?
-	    1ULL << drro->drr_indblkshift : 0;
+	uint32_t indblksz = drro->drr_indblkshift ? 1ULL << drro->drr_indblkshift : 0;
 	int nblkptr = deduce_nblkptr(drro->drr_bonustype,
-	    drro->drr_bonuslen);
-	uint8_t dn_slots = drro->drr_dn_slots != 0 ?
-	    drro->drr_dn_slots : DNODE_MIN_SLOTS;
+								 drro->drr_bonuslen);
+	uint8_t dn_slots = drro->drr_dn_slots != 0 ? drro->drr_dn_slots : DNODE_MIN_SLOTS;
 	boolean_t do_free_range = B_FALSE;
 	int err;
 
@@ -1422,8 +1529,10 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 	 * using the ZPL's generation number to make the above
 	 * distinction.
 	 */
-	if (drro->drr_blksz != doi->doi_data_block_size) {
-		if (rwa->raw) {
+	if (drro->drr_blksz != doi->doi_data_block_size)
+	{
+		if (rwa->raw)
+		{
 			/*
 			 * RAW streams always have large blocks, so
 			 * we are sure that the data is not needed
@@ -1434,7 +1543,9 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 			 * loaded.
 			 */
 			do_free_range = B_TRUE;
-		} else if (rwa->full) {
+		}
+		else if (rwa->full)
+		{
 			/*
 			 * This is a full send stream, so it always
 			 * replaces what we have.  Even if the
@@ -1444,9 +1555,11 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 			 * send as a clone.
 			 */
 			do_free_range = B_TRUE;
-		} else if (drro->drr_type !=
-		    DMU_OT_PLAIN_FILE_CONTENTS ||
-		    doi->doi_type != DMU_OT_PLAIN_FILE_CONTENTS) {
+		}
+		else if (drro->drr_type !=
+					 DMU_OT_PLAIN_FILE_CONTENTS ||
+				 doi->doi_type != DMU_OT_PLAIN_FILE_CONTENTS)
+		{
 			/*
 			 * PLAIN_FILE_CONTENTS are the only type of
 			 * objects that have ever been stored with
@@ -1457,8 +1570,10 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 			 * only increasing.
 			 */
 			do_free_range = B_TRUE;
-		} else if (doi->doi_max_offset <=
-		    doi->doi_data_block_size) {
+		}
+		else if (doi->doi_max_offset <=
+				 doi->doi_data_block_size)
+		{
 			/*
 			 * There is only one block.  We can free it,
 			 * because its contents will be replaced by a
@@ -1471,15 +1586,18 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 			 * recv_check_large_blocks()).
 			 */
 			do_free_range = B_TRUE;
-		} else {
+		}
+		else
+		{
 			boolean_t is_same_gen;
 			err = receive_object_is_same_generation(rwa->os,
-			    drro->drr_object, doi->doi_bonus_type,
-			    drro->drr_bonustype, bonus_data, &is_same_gen);
+													drro->drr_object, doi->doi_bonus_type,
+													drro->drr_bonustype, bonus_data, &is_same_gen);
 			if (err != 0)
 				return (SET_ERROR(EINVAL));
 
-			if (is_same_gen) {
+			if (is_same_gen)
+			{
 				/*
 				 * This is the same logical file, and
 				 * the block size must be increasing.
@@ -1489,15 +1607,17 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 				 * recv_check_large_blocks().
 				 */
 				if (drro->drr_blksz <=
-				    doi->doi_data_block_size)
+					doi->doi_data_block_size)
 					return (SET_ERROR(EINVAL));
 				/*
 				 * We keep the existing blocksize and
 				 * contents.
 				 */
 				*new_blksz =
-				    doi->doi_data_block_size;
-			} else {
+					doi->doi_data_block_size;
+			}
+			else
+			{
 				do_free_range = B_TRUE;
 			}
 		}
@@ -1518,16 +1638,18 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 	 *     - A changed indirect block size
 	 *     - A smaller nlevels
 	 */
-	if (rwa->raw) {
+	if (rwa->raw)
+	{
 		if (indblksz != doi->doi_metadata_block_size)
 			do_free_range = B_TRUE;
 		if (drro->drr_nlevels < doi->doi_indirection)
 			do_free_range = B_TRUE;
 	}
 
-	if (do_free_range) {
+	if (do_free_range)
+	{
 		err = dmu_free_long_range(rwa->os, drro->drr_object,
-		    0, DMU_OBJECT_END);
+								  0, DMU_OBJECT_END);
 		if (err != 0)
 			return (SET_ERROR(EINVAL));
 	}
@@ -1544,7 +1666,8 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 	 * dmu_object_claim_dnsize() instead.
 	 */
 	if ((rwa->raw && drro->drr_nlevels < doi->doi_indirection) ||
-	    dn_slots != doi->doi_dnodesize >> DNODE_SHIFT) {
+		dn_slots != doi->doi_dnodesize >> DNODE_SHIFT)
+	{
 		err = dmu_free_long_object(rwa->os, drro->drr_object);
 		if (err != 0)
 			return (SET_ERROR(EINVAL));
@@ -1566,10 +1689,11 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 	 * free may be skipped when dmu_free_long_range() was called
 	 * above since it covers the entire object's contents.
 	 */
-	if (rwa->raw && *object_to_hold != DMU_NEW_OBJECT && !do_free_range) {
+	if (rwa->raw && *object_to_hold != DMU_NEW_OBJECT && !do_free_range)
+	{
 		err = dmu_free_long_range(rwa->os, drro->drr_object,
-		    (drro->drr_maxblkid + 1) * doi->doi_data_block_size,
-		    DMU_OBJECT_END);
+								  (drro->drr_maxblkid + 1) * doi->doi_data_block_size,
+								  DMU_OBJECT_END);
 		if (err != 0)
 			return (SET_ERROR(EINVAL));
 	}
@@ -1578,56 +1702,61 @@ receive_handle_existing_object(const struct receive_writer_arg *rwa,
 
 noinline static int
 receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
-    void *data)
+			   void *data)
 {
 	dmu_object_info_t doi;
 	dmu_tx_t *tx;
 	int err;
 	uint32_t new_blksz = drro->drr_blksz;
-	uint8_t dn_slots = drro->drr_dn_slots != 0 ?
-	    drro->drr_dn_slots : DNODE_MIN_SLOTS;
+	uint8_t dn_slots = drro->drr_dn_slots != 0 ? drro->drr_dn_slots : DNODE_MIN_SLOTS;
 
 	if (drro->drr_type == DMU_OT_NONE ||
-	    !DMU_OT_IS_VALID(drro->drr_type) ||
-	    !DMU_OT_IS_VALID(drro->drr_bonustype) ||
-	    drro->drr_checksumtype >= ZIO_CHECKSUM_FUNCTIONS ||
-	    drro->drr_compress >= ZIO_COMPRESS_FUNCTIONS ||
-	    P2PHASE(drro->drr_blksz, SPA_MINBLOCKSIZE) ||
-	    drro->drr_blksz < SPA_MINBLOCKSIZE ||
-	    drro->drr_blksz > spa_maxblocksize(dmu_objset_spa(rwa->os)) ||
-	    drro->drr_bonuslen >
-	    DN_BONUS_SIZE(spa_maxdnodesize(dmu_objset_spa(rwa->os))) ||
-	    dn_slots >
-	    (spa_maxdnodesize(dmu_objset_spa(rwa->os)) >> DNODE_SHIFT)) {
+		!DMU_OT_IS_VALID(drro->drr_type) ||
+		!DMU_OT_IS_VALID(drro->drr_bonustype) ||
+		drro->drr_checksumtype >= ZIO_CHECKSUM_FUNCTIONS ||
+		drro->drr_compress >= ZIO_COMPRESS_FUNCTIONS ||
+		P2PHASE(drro->drr_blksz, SPA_MINBLOCKSIZE) ||
+		drro->drr_blksz < SPA_MINBLOCKSIZE ||
+		drro->drr_blksz > spa_maxblocksize(dmu_objset_spa(rwa->os)) ||
+		drro->drr_bonuslen >
+			DN_BONUS_SIZE(spa_maxdnodesize(dmu_objset_spa(rwa->os))) ||
+		dn_slots >
+			(spa_maxdnodesize(dmu_objset_spa(rwa->os)) >> DNODE_SHIFT))
+	{
 		return (SET_ERROR(EINVAL));
 	}
 
-	if (rwa->raw) {
+	if (rwa->raw)
+	{
 		/*
 		 * We should have received a DRR_OBJECT_RANGE record
 		 * containing this block and stored it in rwa.
 		 */
 		if (drro->drr_object < rwa->or_firstobj ||
-		    drro->drr_object >= rwa->or_firstobj + rwa->or_numslots ||
-		    drro->drr_raw_bonuslen < drro->drr_bonuslen ||
-		    drro->drr_indblkshift > SPA_MAXBLOCKSHIFT ||
-		    drro->drr_nlevels > DN_MAX_LEVELS ||
-		    drro->drr_nblkptr > DN_MAX_NBLKPTR ||
-		    DN_SLOTS_TO_BONUSLEN(dn_slots) <
-		    drro->drr_raw_bonuslen)
+			drro->drr_object >= rwa->or_firstobj + rwa->or_numslots ||
+			drro->drr_raw_bonuslen < drro->drr_bonuslen ||
+			drro->drr_indblkshift > SPA_MAXBLOCKSHIFT ||
+			drro->drr_nlevels > DN_MAX_LEVELS ||
+			drro->drr_nblkptr > DN_MAX_NBLKPTR ||
+			DN_SLOTS_TO_BONUSLEN(dn_slots) <
+				drro->drr_raw_bonuslen)
 			return (SET_ERROR(EINVAL));
-	} else {
+	}
+	else
+	{
 		/*
 		 * The DRR_OBJECT_SPILL flag is valid when the DRR_BEGIN
 		 * record indicates this by setting DRR_FLAG_SPILL_BLOCK.
 		 */
 		if (((drro->drr_flags & ~(DRR_OBJECT_SPILL))) ||
-		    (!rwa->spill && DRR_OBJECT_HAS_SPILL(drro->drr_flags))) {
+			(!rwa->spill && DRR_OBJECT_HAS_SPILL(drro->drr_flags)))
+		{
 			return (SET_ERROR(EINVAL));
 		}
 
 		if (drro->drr_raw_bonuslen != 0 || drro->drr_nblkptr != 0 ||
-		    drro->drr_indblkshift != 0 || drro->drr_nlevels != 0) {
+			drro->drr_indblkshift != 0 || drro->drr_nlevels != 0)
+		{
 			return (SET_ERROR(EINVAL));
 		}
 	}
@@ -1648,10 +1777,13 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 	 * dnode hasn't changed.
 	 */
 	uint64_t object_to_hold;
-	if (err == 0) {
+	if (err == 0)
+	{
 		err = receive_handle_existing_object(rwa, drro, &doi, data,
-		    &object_to_hold, &new_blksz);
-	} else if (err == EEXIST) {
+											 &object_to_hold, &new_blksz);
+	}
+	else if (err == EEXIST)
+	{
 		/*
 		 * The object requested is currently an interior slot of a
 		 * multi-slot dnode. This will be resolved when the next txg
@@ -1666,7 +1798,9 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 
 		/* object was freed and we are about to allocate a new one */
 		object_to_hold = DMU_NEW_OBJECT;
-	} else {
+	}
+	else
+	{
 		/*
 		 * If the only record in this range so far was DRR_FREEOBJECTS
 		 * with at least one actually freed object, it's possible that
@@ -1689,12 +1823,14 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 	 * another object from the previous snapshot. We must free
 	 * these objects before we attempt to allocate the new dnode.
 	 */
-	if (dn_slots > 1) {
+	if (dn_slots > 1)
+	{
 		boolean_t need_sync = B_FALSE;
 
 		for (uint64_t slot = drro->drr_object + 1;
-		    slot < drro->drr_object + dn_slots;
-		    slot++) {
+			 slot < drro->drr_object + dn_slots;
+			 slot++)
+		{
 			dmu_object_info_t slot_doi;
 
 			err = dmu_object_info(rwa->os, slot, &slot_doi);
@@ -1718,28 +1854,33 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 	dmu_tx_hold_bonus(tx, object_to_hold);
 	dmu_tx_hold_write(tx, object_to_hold, 0, 0);
 	err = dmu_tx_assign(tx, TXG_WAIT);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dmu_tx_abort(tx);
 		return (err);
 	}
 
-	if (object_to_hold == DMU_NEW_OBJECT) {
+	if (object_to_hold == DMU_NEW_OBJECT)
+	{
 		/* Currently free, wants to be allocated */
 		err = dmu_object_claim_dnsize(rwa->os, drro->drr_object,
-		    drro->drr_type, new_blksz,
-		    drro->drr_bonustype, drro->drr_bonuslen,
-		    dn_slots << DNODE_SHIFT, tx);
-	} else if (drro->drr_type != doi.doi_type ||
-	    new_blksz != doi.doi_data_block_size ||
-	    drro->drr_bonustype != doi.doi_bonus_type ||
-	    drro->drr_bonuslen != doi.doi_bonus_size) {
+									  drro->drr_type, new_blksz,
+									  drro->drr_bonustype, drro->drr_bonuslen,
+									  dn_slots << DNODE_SHIFT, tx);
+	}
+	else if (drro->drr_type != doi.doi_type ||
+			 new_blksz != doi.doi_data_block_size ||
+			 drro->drr_bonustype != doi.doi_bonus_type ||
+			 drro->drr_bonuslen != doi.doi_bonus_size)
+	{
 		/* Currently allocated, but with different properties */
 		err = dmu_object_reclaim_dnsize(rwa->os, drro->drr_object,
-		    drro->drr_type, new_blksz,
-		    drro->drr_bonustype, drro->drr_bonuslen,
-		    dn_slots << DNODE_SHIFT, rwa->spill ?
-		    DRR_OBJECT_HAS_SPILL(drro->drr_flags) : B_FALSE, tx);
-	} else if (rwa->spill && !DRR_OBJECT_HAS_SPILL(drro->drr_flags)) {
+										drro->drr_type, new_blksz,
+										drro->drr_bonustype, drro->drr_bonuslen,
+										dn_slots << DNODE_SHIFT, rwa->spill ? DRR_OBJECT_HAS_SPILL(drro->drr_flags) : B_FALSE, tx);
+	}
+	else if (rwa->spill && !DRR_OBJECT_HAS_SPILL(drro->drr_flags))
+	{
 		/*
 		 * Currently allocated, the existing version of this object
 		 * may reference a spill block that is no longer allocated
@@ -1748,12 +1889,14 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 		err = dmu_object_rm_spill(rwa->os, drro->drr_object, tx);
 	}
 
-	if (err != 0) {
+	if (err != 0)
+	{
 		dmu_tx_commit(tx);
 		return (SET_ERROR(EINVAL));
 	}
 
-	if (rwa->or_crypt_params_present) {
+	if (rwa->or_crypt_params_present)
+	{
 		/*
 		 * Set the crypt params for the buffer associated with this
 		 * range of dnodes.  This causes the blkptr_t to have the
@@ -1773,14 +1916,15 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 		uint64_t offset = rwa->or_firstobj * DNODE_MIN_SIZE;
 
 		err = dmu_buf_hold_by_dnode(DMU_META_DNODE(rwa->os),
-		    offset, FTAG, &db, DMU_READ_PREFETCH | DMU_READ_NO_DECRYPT);
-		if (err != 0) {
+									offset, FTAG, &db, DMU_READ_PREFETCH | DMU_READ_NO_DECRYPT);
+		if (err != 0)
+		{
 			dmu_tx_commit(tx);
 			return (SET_ERROR(EINVAL));
 		}
 
 		dmu_buf_set_crypt_params(db, rwa->or_byteorder,
-		    rwa->or_salt, rwa->or_iv, rwa->or_mac, tx);
+								 rwa->or_salt, rwa->or_iv, rwa->or_mac, tx);
 
 		dmu_buf_rele(db, FTAG);
 
@@ -1788,12 +1932,13 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 	}
 
 	dmu_object_set_checksum(rwa->os, drro->drr_object,
-	    drro->drr_checksumtype, tx);
+							drro->drr_checksumtype, tx);
 	dmu_object_set_compress(rwa->os, drro->drr_object,
-	    drro->drr_compress, tx);
+							drro->drr_compress, tx);
 
 	/* handle more restrictive dnode structuring for raw recvs */
-	if (rwa->raw) {
+	if (rwa->raw)
+	{
 		/*
 		 * Set the indirect block size, block shift, nlevels.
 		 * This will not fail because we ensured all of the
@@ -1803,19 +1948,20 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 		 */
 		ASSERT3U(new_blksz, ==, drro->drr_blksz);
 		VERIFY0(dmu_object_set_blocksize(rwa->os, drro->drr_object,
-		    drro->drr_blksz, drro->drr_indblkshift, tx));
+										 drro->drr_blksz, drro->drr_indblkshift, tx));
 		VERIFY0(dmu_object_set_nlevels(rwa->os, drro->drr_object,
-		    drro->drr_nlevels, tx));
+									   drro->drr_nlevels, tx));
 
 		/*
 		 * Set the maxblkid. This will always succeed because
 		 * we freed all blocks beyond the new maxblkid above.
 		 */
 		VERIFY0(dmu_object_set_maxblkid(rwa->os, drro->drr_object,
-		    drro->drr_maxblkid, tx));
+										drro->drr_maxblkid, tx));
 	}
 
-	if (data != NULL) {
+	if (data != NULL)
+	{
 		dmu_buf_t *db;
 		dnode_t *dn;
 		uint32_t flags = DMU_READ_NO_PREFETCH;
@@ -1835,11 +1981,12 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 		 * Raw bonus buffers have their byteorder determined by the
 		 * DRR_OBJECT_RANGE record.
 		 */
-		if (rwa->byteswap && !rwa->raw) {
+		if (rwa->byteswap && !rwa->raw)
+		{
 			dmu_object_byteswap_t byteswap =
-			    DMU_OT_BYTESWAP(drro->drr_bonustype);
+				DMU_OT_BYTESWAP(drro->drr_bonustype);
 			dmu_ot_byteswap[byteswap].ob_func(db->db_data,
-			    DRR_OBJECT_PAYLOAD_SIZE(drro));
+											  DRR_OBJECT_PAYLOAD_SIZE(drro));
 		}
 		dmu_buf_rele(db, FTAG);
 		dnode_rele(dn, FTAG);
@@ -1852,7 +1999,7 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 /* ARGSUSED */
 noinline static int
 receive_freeobjects(struct receive_writer_arg *rwa,
-    struct drr_freeobjects *drrfo)
+					struct drr_freeobjects *drrfo)
 {
 	uint64_t obj;
 	int next_err = 0;
@@ -1861,9 +2008,10 @@ receive_freeobjects(struct receive_writer_arg *rwa,
 		return (SET_ERROR(EINVAL));
 
 	for (obj = drrfo->drr_firstobj == 0 ? 1 : drrfo->drr_firstobj;
-	    obj < drrfo->drr_firstobj + drrfo->drr_numobjs &&
-	    obj < DN_MAX_OBJECT && next_err == 0;
-	    next_err = dmu_object_next(rwa->os, &obj, FALSE, 0)) {
+		 obj < drrfo->drr_firstobj + drrfo->drr_numobjs &&
+		 obj < DN_MAX_OBJECT && next_err == 0;
+		 next_err = dmu_object_next(rwa->os, &obj, FALSE, 0))
+	{
 		dmu_object_info_t doi;
 		int err;
 
@@ -1910,23 +2058,26 @@ flush_write_batch_impl(struct receive_writer_arg *rwa)
 
 	dmu_tx_t *tx = dmu_tx_create(rwa->os);
 	dmu_tx_hold_write_by_dnode(tx, dn, first_drrw->drr_offset,
-	    last_drrw->drr_offset - first_drrw->drr_offset +
-	    last_drrw->drr_logical_size);
+							   last_drrw->drr_offset - first_drrw->drr_offset +
+								   last_drrw->drr_logical_size);
 	err = dmu_tx_assign(tx, TXG_WAIT);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dmu_tx_abort(tx);
 		dnode_rele(dn, FTAG);
 		return (err);
 	}
 
 	struct receive_record_arg *rrd;
-	while ((rrd = list_head(&rwa->write_batch)) != NULL) {
+	while ((rrd = list_head(&rwa->write_batch)) != NULL)
+	{
 		struct drr_write *drrw = &rrd->header.drr_u.drr_write;
 		abd_t *abd = rrd->abd;
 
 		ASSERT3U(drrw->drr_object, ==, rwa->last_object);
 
-		if (drrw->drr_logical_size != dn->dn_datablksz) {
+		if (drrw->drr_logical_size != dn->dn_datablksz)
+		{
 			/*
 			 * The WRITE record is larger than the object's block
 			 * size.  We must be receiving an incremental
@@ -1936,63 +2087,75 @@ flush_write_batch_impl(struct receive_writer_arg *rwa)
 			 * data (if compressed) and do a normal dmu_write().
 			 */
 			ASSERT3U(drrw->drr_logical_size, >, dn->dn_datablksz);
-			if (DRR_WRITE_COMPRESSED(drrw)) {
+			if (DRR_WRITE_COMPRESSED(drrw))
+			{
 				abd_t *decomp_abd =
-				    abd_alloc_linear(drrw->drr_logical_size,
-				    B_FALSE);
+					abd_alloc_linear(drrw->drr_logical_size,
+									 B_FALSE);
 
 				err = zio_decompress_data(
-				    drrw->drr_compressiontype,
-				    abd, abd_to_buf(decomp_abd),
-				    abd_get_size(abd),
-				    abd_get_size(decomp_abd), NULL);
+					drrw->drr_compressiontype,
+					abd, abd_to_buf(decomp_abd),
+					abd_get_size(abd),
+					abd_get_size(decomp_abd), NULL);
 
-				if (err == 0) {
+				if (err == 0)
+				{
 					dmu_write_by_dnode(dn,
-					    drrw->drr_offset,
-					    drrw->drr_logical_size,
-					    abd_to_buf(decomp_abd), tx);
+									   drrw->drr_offset,
+									   drrw->drr_logical_size,
+									   abd_to_buf(decomp_abd), tx);
 				}
 				abd_free(decomp_abd);
-			} else {
+			}
+			else
+			{
 				dmu_write_by_dnode(dn,
-				    drrw->drr_offset,
-				    drrw->drr_logical_size,
-				    abd_to_buf(abd), tx);
+								   drrw->drr_offset,
+								   drrw->drr_logical_size,
+								   abd_to_buf(abd), tx);
 			}
 			if (err == 0)
 				abd_free(abd);
-		} else {
+		}
+		else
+		{
 			zio_prop_t zp;
 			dmu_write_policy(rwa->os, dn, 0, 0, &zp);
 
 			enum zio_flag zio_flags = 0;
 
-			if (rwa->raw) {
+			if (rwa->raw)
+			{
 				zp.zp_encrypt = B_TRUE;
 				zp.zp_compress = drrw->drr_compressiontype;
 				zp.zp_byteorder = ZFS_HOST_BYTEORDER ^
-				    !!DRR_IS_RAW_BYTESWAPPED(drrw->drr_flags) ^
-				    rwa->byteswap;
+								  !!DRR_IS_RAW_BYTESWAPPED(drrw->drr_flags) ^
+								  rwa->byteswap;
 				bcopy(drrw->drr_salt, zp.zp_salt,
-				    ZIO_DATA_SALT_LEN);
+					  ZIO_DATA_SALT_LEN);
 				bcopy(drrw->drr_iv, zp.zp_iv,
-				    ZIO_DATA_IV_LEN);
+					  ZIO_DATA_IV_LEN);
 				bcopy(drrw->drr_mac, zp.zp_mac,
-				    ZIO_DATA_MAC_LEN);
-				if (DMU_OT_IS_ENCRYPTED(zp.zp_type)) {
+					  ZIO_DATA_MAC_LEN);
+				if (DMU_OT_IS_ENCRYPTED(zp.zp_type))
+				{
 					zp.zp_nopwrite = B_FALSE;
 					zp.zp_copies = MIN(zp.zp_copies,
-					    SPA_DVAS_PER_BP - 1);
+									   SPA_DVAS_PER_BP - 1);
 				}
 				zio_flags |= ZIO_FLAG_RAW;
-			} else if (DRR_WRITE_COMPRESSED(drrw)) {
+			}
+			else if (DRR_WRITE_COMPRESSED(drrw))
+			{
 				ASSERT3U(drrw->drr_compressed_size, >, 0);
 				ASSERT3U(drrw->drr_logical_size, >=,
-				    drrw->drr_compressed_size);
+						 drrw->drr_compressed_size);
 				zp.zp_compress = drrw->drr_compressiontype;
 				zio_flags |= ZIO_FLAG_RAW_COMPRESS;
-			} else if (rwa->byteswap) {
+			}
+			else if (rwa->byteswap)
+			{
 				/*
 				 * Note: compressed blocks never need to be
 				 * byteswapped, because WRITE records for
@@ -2003,10 +2166,10 @@ flush_write_batch_impl(struct receive_writer_arg *rwa)
 				 * zp_byteorder above.
 				 */
 				dmu_object_byteswap_t byteswap =
-				    DMU_OT_BYTESWAP(drrw->drr_type);
+					DMU_OT_BYTESWAP(drrw->drr_type);
 				dmu_ot_byteswap[byteswap].ob_func(
-				    abd_to_buf(abd),
-				    DRR_WRITE_PAYLOAD_SIZE(drrw));
+					abd_to_buf(abd),
+					DRR_WRITE_PAYLOAD_SIZE(drrw));
 			}
 
 			/*
@@ -2015,10 +2178,11 @@ flush_write_batch_impl(struct receive_writer_arg *rwa)
 			 * improved performance.
 			 */
 			err = dmu_lightweight_write_by_dnode(dn,
-			    drrw->drr_offset, abd, &zp, zio_flags, tx);
+												 drrw->drr_offset, abd, &zp, zio_flags, tx);
 		}
 
-		if (err != 0) {
+		if (err != 0)
+		{
 			/*
 			 * This rrd is left on the list, so the caller will
 			 * free it (and the abd).
@@ -2035,7 +2199,7 @@ flush_write_batch_impl(struct receive_writer_arg *rwa)
 		save_resume_state(rwa, drrw->drr_object, drrw->drr_offset, tx);
 
 		list_remove(&rwa->write_batch, rrd);
-		kmem_free(rrd, sizeof (*rrd));
+		kmem_free(rrd, sizeof(*rrd));
 	}
 
 	dmu_tx_commit(tx);
@@ -2051,11 +2215,13 @@ flush_write_batch(struct receive_writer_arg *rwa)
 	int err = rwa->err;
 	if (err == 0)
 		err = flush_write_batch_impl(rwa);
-	if (err != 0) {
+	if (err != 0)
+	{
 		struct receive_record_arg *rrd;
-		while ((rrd = list_remove_head(&rwa->write_batch)) != NULL) {
+		while ((rrd = list_remove_head(&rwa->write_batch)) != NULL)
+		{
 			abd_free(rrd->abd);
-			kmem_free(rrd, sizeof (*rrd));
+			kmem_free(rrd, sizeof(*rrd));
 		}
 	}
 	ASSERT(list_is_empty(&rwa->write_batch));
@@ -2064,7 +2230,7 @@ flush_write_batch(struct receive_writer_arg *rwa)
 
 noinline static int
 receive_process_write_record(struct receive_writer_arg *rwa,
-    struct receive_record_arg *rrd)
+							 struct receive_record_arg *rrd)
 {
 	int err = 0;
 
@@ -2072,7 +2238,7 @@ receive_process_write_record(struct receive_writer_arg *rwa,
 	struct drr_write *drrw = &rrd->header.drr_u.drr_write;
 
 	if (drrw->drr_offset + drrw->drr_logical_size < drrw->drr_offset ||
-	    !DMU_OT_IS_VALID(drrw->drr_type))
+		!DMU_OT_IS_VALID(drrw->drr_type))
 		return (SET_ERROR(EINVAL));
 
 	/*
@@ -2080,18 +2246,20 @@ receive_process_write_record(struct receive_writer_arg *rwa,
 	 * by (object, offset).
 	 */
 	if (drrw->drr_object < rwa->last_object ||
-	    (drrw->drr_object == rwa->last_object &&
-	    drrw->drr_offset < rwa->last_offset)) {
+		(drrw->drr_object == rwa->last_object &&
+		 drrw->drr_offset < rwa->last_offset))
+	{
 		return (SET_ERROR(EINVAL));
 	}
 
 	struct receive_record_arg *first_rrd = list_head(&rwa->write_batch);
 	struct drr_write *first_drrw = &first_rrd->header.drr_u.drr_write;
 	uint64_t batch_size =
-	    MIN(zfs_recv_write_batch_size, DMU_MAX_ACCESS / 2);
+		MIN(zfs_recv_write_batch_size, DMU_MAX_ACCESS / 2);
 	if (first_rrd != NULL &&
-	    (drrw->drr_object != first_drrw->drr_object ||
-	    drrw->drr_offset >= first_drrw->drr_offset + batch_size)) {
+		(drrw->drr_object != first_drrw->drr_object ||
+		 drrw->drr_offset >= first_drrw->drr_offset + batch_size))
+	{
 		err = flush_write_batch(rwa);
 		if (err != 0)
 			return (err);
@@ -2113,7 +2281,7 @@ receive_process_write_record(struct receive_writer_arg *rwa,
 
 static int
 receive_write_embedded(struct receive_writer_arg *rwa,
-    struct drr_write_embedded *drrwe, void *data)
+					   struct drr_write_embedded *drrwe, void *data)
 {
 	dmu_tx_t *tx;
 	int err;
@@ -2137,17 +2305,18 @@ receive_write_embedded(struct receive_writer_arg *rwa,
 	tx = dmu_tx_create(rwa->os);
 
 	dmu_tx_hold_write(tx, drrwe->drr_object,
-	    drrwe->drr_offset, drrwe->drr_length);
+					  drrwe->drr_offset, drrwe->drr_length);
 	err = dmu_tx_assign(tx, TXG_WAIT);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dmu_tx_abort(tx);
 		return (err);
 	}
 
 	dmu_write_embedded(rwa->os, drrwe->drr_object,
-	    drrwe->drr_offset, data, drrwe->drr_etype,
-	    drrwe->drr_compression, drrwe->drr_lsize, drrwe->drr_psize,
-	    rwa->byteswap ^ ZFS_HOST_BYTEORDER, tx);
+					   drrwe->drr_offset, data, drrwe->drr_etype,
+					   drrwe->drr_compression, drrwe->drr_lsize, drrwe->drr_psize,
+					   rwa->byteswap ^ ZFS_HOST_BYTEORDER, tx);
 
 	/* See comment in restore_write. */
 	save_resume_state(rwa, drrwe->drr_object, drrwe->drr_offset, tx);
@@ -2157,13 +2326,13 @@ receive_write_embedded(struct receive_writer_arg *rwa,
 
 static int
 receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
-    abd_t *abd)
+			  abd_t *abd)
 {
 	dmu_buf_t *db, *db_spill;
 	int err;
 
 	if (drrs->drr_length < SPA_MINBLOCKSIZE ||
-	    drrs->drr_length > spa_maxblocksize(dmu_objset_spa(rwa->os)))
+		drrs->drr_length > spa_maxblocksize(dmu_objset_spa(rwa->os)))
 		return (SET_ERROR(EINVAL));
 
 	/*
@@ -2172,15 +2341,17 @@ receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
 	 * should be ignored by current versions of the code which support
 	 * the DRR_FLAG_SPILL_BLOCK flag.
 	 */
-	if (rwa->spill && DRR_SPILL_IS_UNMODIFIED(drrs->drr_flags)) {
+	if (rwa->spill && DRR_SPILL_IS_UNMODIFIED(drrs->drr_flags))
+	{
 		abd_free(abd);
 		return (0);
 	}
 
-	if (rwa->raw) {
+	if (rwa->raw)
+	{
 		if (!DMU_OT_IS_VALID(drrs->drr_type) ||
-		    drrs->drr_compressiontype >= ZIO_COMPRESS_FUNCTIONS ||
-		    drrs->drr_compressed_size == 0)
+			drrs->drr_compressiontype >= ZIO_COMPRESS_FUNCTIONS ||
+			drrs->drr_compressed_size == 0)
 			return (SET_ERROR(EINVAL));
 	}
 
@@ -2192,7 +2363,8 @@ receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
 
 	VERIFY0(dmu_bonus_hold(rwa->os, drrs->drr_object, FTAG, &db));
 	if ((err = dmu_spill_hold_by_bonus(db, DMU_READ_NO_DECRYPT, FTAG,
-	    &db_spill)) != 0) {
+									   &db_spill)) != 0)
+	{
 		dmu_buf_rele(db, FTAG);
 		return (err);
 	}
@@ -2202,7 +2374,8 @@ receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
 	dmu_tx_hold_spill(tx, db->db_object);
 
 	err = dmu_tx_assign(tx, TXG_WAIT);
-	if (err != 0) {
+	if (err != 0)
+	{
 		dmu_buf_rele(db, FTAG);
 		dmu_buf_rele(db_spill, FTAG);
 		dmu_tx_abort(tx);
@@ -2214,32 +2387,37 @@ receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
 	 * occurs any existing dbuf must be updated to match the logical
 	 * size of the provided arc_buf_t.
 	 */
-	if (db_spill->db_size != drrs->drr_length) {
+	if (db_spill->db_size != drrs->drr_length)
+	{
 		dmu_buf_will_fill(db_spill, tx);
 		VERIFY0(dbuf_spill_set_blksz(db_spill,
-		    drrs->drr_length, tx));
+									 drrs->drr_length, tx));
 	}
 
 	arc_buf_t *abuf;
-	if (rwa->raw) {
+	if (rwa->raw)
+	{
 		boolean_t byteorder = ZFS_HOST_BYTEORDER ^
-		    !!DRR_IS_RAW_BYTESWAPPED(drrs->drr_flags) ^
-		    rwa->byteswap;
+							  !!DRR_IS_RAW_BYTESWAPPED(drrs->drr_flags) ^
+							  rwa->byteswap;
 
 		abuf = arc_loan_raw_buf(dmu_objset_spa(rwa->os),
-		    drrs->drr_object, byteorder, drrs->drr_salt,
-		    drrs->drr_iv, drrs->drr_mac, drrs->drr_type,
-		    drrs->drr_compressed_size, drrs->drr_length,
-		    drrs->drr_compressiontype, 0);
-	} else {
+								drrs->drr_object, byteorder, drrs->drr_salt,
+								drrs->drr_iv, drrs->drr_mac, drrs->drr_type,
+								drrs->drr_compressed_size, drrs->drr_length,
+								drrs->drr_compressiontype, 0);
+	}
+	else
+	{
 		abuf = arc_loan_buf(dmu_objset_spa(rwa->os),
-		    DMU_OT_IS_METADATA(drrs->drr_type),
-		    drrs->drr_length);
-		if (rwa->byteswap) {
+							DMU_OT_IS_METADATA(drrs->drr_type),
+							drrs->drr_length);
+		if (rwa->byteswap)
+		{
 			dmu_object_byteswap_t byteswap =
-			    DMU_OT_BYTESWAP(drrs->drr_type);
+				DMU_OT_BYTESWAP(drrs->drr_type);
 			dmu_ot_byteswap[byteswap].ob_func(abd_to_buf(abd),
-			    DRR_SPILL_PAYLOAD_SIZE(drrs));
+											  DRR_SPILL_PAYLOAD_SIZE(drrs));
 		}
 	}
 
@@ -2261,7 +2439,7 @@ receive_free(struct receive_writer_arg *rwa, struct drr_free *drrf)
 	int err;
 
 	if (drrf->drr_length != -1ULL &&
-	    drrf->drr_offset + drrf->drr_length < drrf->drr_offset)
+		drrf->drr_offset + drrf->drr_length < drrf->drr_offset)
 		return (SET_ERROR(EINVAL));
 
 	if (dmu_object_info(rwa->os, drrf->drr_object, NULL) != 0)
@@ -2271,14 +2449,14 @@ receive_free(struct receive_writer_arg *rwa, struct drr_free *drrf)
 		rwa->max_object = drrf->drr_object;
 
 	err = dmu_free_long_range(rwa->os, drrf->drr_object,
-	    drrf->drr_offset, drrf->drr_length);
+							  drrf->drr_offset, drrf->drr_length);
 
 	return (err);
 }
 
 static int
 receive_object_range(struct receive_writer_arg *rwa,
-    struct drr_object_range *drror)
+					 struct drr_object_range *drror)
 {
 	/*
 	 * By default, we assume this block is in our native format
@@ -2288,7 +2466,7 @@ receive_object_range(struct receive_writer_arg *rwa,
 	 * in non-native format on the send side.
 	 */
 	boolean_t byteorder = ZFS_HOST_BYTEORDER ^ rwa->byteswap ^
-	    !!DRR_IS_RAW_BYTESWAPPED(drror->drr_flags);
+						  !!DRR_IS_RAW_BYTESWAPPED(drror->drr_flags);
 
 	/*
 	 * Since dnode block sizes are constant, we should not need to worry
@@ -2302,8 +2480,8 @@ receive_object_range(struct receive_writer_arg *rwa,
 	 * match on the sending and receiving side.
 	 */
 	if (drror->drr_numslots != DNODES_PER_BLOCK ||
-	    P2PHASE(drror->drr_firstobj, DNODES_PER_BLOCK) != 0 ||
-	    !rwa->raw)
+		P2PHASE(drror->drr_firstobj, DNODES_PER_BLOCK) != 0 ||
+		!rwa->raw)
 		return (SET_ERROR(EINVAL));
 
 	if (drror->drr_firstobj > rwa->max_object)
@@ -2363,26 +2541,32 @@ dmu_recv_cleanup_ds(dmu_recv_cookie_t *drc)
 
 	rrw_enter(&ds->ds_bp_rwlock, RW_READER, FTAG);
 	if (drc->drc_resumable && drc->drc_should_save &&
-	    !BP_IS_HOLE(dsl_dataset_get_blkptr(ds))) {
+		!BP_IS_HOLE(dsl_dataset_get_blkptr(ds)))
+	{
 		rrw_exit(&ds->ds_bp_rwlock, FTAG);
 		dsl_dataset_disown(ds, dsflags, dmu_recv_tag);
-	} else {
+	}
+	else
+	{
 		char name[ZFS_MAX_DATASET_NAME_LEN];
 		rrw_exit(&ds->ds_bp_rwlock, FTAG);
 		dsl_dataset_name(ds, name);
 		dsl_dataset_disown(ds, dsflags, dmu_recv_tag);
-		(void) dsl_destroy_head(name);
+		(void)dsl_destroy_head(name);
 	}
 }
 
 static void
 receive_cksum(dmu_recv_cookie_t *drc, int len, void *buf)
 {
-	if (drc->drc_byteswap) {
-		(void) fletcher_4_incremental_byteswap(buf, len,
-		    &drc->drc_cksum);
-	} else {
-		(void) fletcher_4_incremental_native(buf, len, &drc->drc_cksum);
+	if (drc->drc_byteswap)
+	{
+		(void)fletcher_4_incremental_byteswap(buf, len,
+											  &drc->drc_cksum);
+	}
+	else
+	{
+		(void)fletcher_4_incremental_native(buf, len, &drc->drc_cksum);
 	}
 }
 
@@ -2398,7 +2582,8 @@ receive_read_payload_and_next_header(dmu_recv_cookie_t *drc, int len, void *buf)
 {
 	int err;
 
-	if (len != 0) {
+	if (len != 0)
+	{
 		ASSERT3U(len, <=, SPA_MAXBLOCKSIZE);
 		err = receive_read(drc, len, buf);
 		if (err != 0)
@@ -2406,29 +2591,34 @@ receive_read_payload_and_next_header(dmu_recv_cookie_t *drc, int len, void *buf)
 		receive_cksum(drc, len, buf);
 
 		/* note: rrd is NULL when reading the begin record's payload */
-		if (drc->drc_rrd != NULL) {
+		if (drc->drc_rrd != NULL)
+		{
 			drc->drc_rrd->payload = buf;
 			drc->drc_rrd->payload_size = len;
 			drc->drc_rrd->bytes_read = drc->drc_bytes_read;
 		}
-	} else {
+	}
+	else
+	{
 		ASSERT3P(buf, ==, NULL);
 	}
 
 	drc->drc_prev_cksum = drc->drc_cksum;
 
-	drc->drc_next_rrd = kmem_zalloc(sizeof (*drc->drc_next_rrd), KM_SLEEP);
-	err = receive_read(drc, sizeof (drc->drc_next_rrd->header),
-	    &drc->drc_next_rrd->header);
+	drc->drc_next_rrd = kmem_zalloc(sizeof(*drc->drc_next_rrd), KM_SLEEP);
+	err = receive_read(drc, sizeof(drc->drc_next_rrd->header),
+					   &drc->drc_next_rrd->header);
 	drc->drc_next_rrd->bytes_read = drc->drc_bytes_read;
 
-	if (err != 0) {
-		kmem_free(drc->drc_next_rrd, sizeof (*drc->drc_next_rrd));
+	if (err != 0)
+	{
+		kmem_free(drc->drc_next_rrd, sizeof(*drc->drc_next_rrd));
 		drc->drc_next_rrd = NULL;
 		return (err);
 	}
-	if (drc->drc_next_rrd->header.drr_type == DRR_BEGIN) {
-		kmem_free(drc->drc_next_rrd, sizeof (*drc->drc_next_rrd));
+	if (drc->drc_next_rrd->header.drr_type == DRR_BEGIN)
+	{
+		kmem_free(drc->drc_next_rrd, sizeof(*drc->drc_next_rrd));
 		drc->drc_next_rrd = NULL;
 		return (SET_ERROR(EINVAL));
 	}
@@ -2438,27 +2628,28 @@ receive_read_payload_and_next_header(dmu_recv_cookie_t *drc, int len, void *buf)
 	 * checksum itself.
 	 */
 	ASSERT3U(offsetof(dmu_replay_record_t, drr_u.drr_checksum.drr_checksum),
-	    ==, sizeof (dmu_replay_record_t) - sizeof (zio_cksum_t));
+			 ==, sizeof(dmu_replay_record_t) - sizeof(zio_cksum_t));
 	receive_cksum(drc,
-	    offsetof(dmu_replay_record_t, drr_u.drr_checksum.drr_checksum),
-	    &drc->drc_next_rrd->header);
+				  offsetof(dmu_replay_record_t, drr_u.drr_checksum.drr_checksum),
+				  &drc->drc_next_rrd->header);
 
 	zio_cksum_t cksum_orig =
-	    drc->drc_next_rrd->header.drr_u.drr_checksum.drr_checksum;
+		drc->drc_next_rrd->header.drr_u.drr_checksum.drr_checksum;
 	zio_cksum_t *cksump =
-	    &drc->drc_next_rrd->header.drr_u.drr_checksum.drr_checksum;
+		&drc->drc_next_rrd->header.drr_u.drr_checksum.drr_checksum;
 
 	if (drc->drc_byteswap)
 		byteswap_record(&drc->drc_next_rrd->header);
 
 	if ((!ZIO_CHECKSUM_IS_ZERO(cksump)) &&
-	    !ZIO_CHECKSUM_EQUAL(drc->drc_cksum, *cksump)) {
-		kmem_free(drc->drc_next_rrd, sizeof (*drc->drc_next_rrd));
+		!ZIO_CHECKSUM_EQUAL(drc->drc_cksum, *cksump))
+	{
+		kmem_free(drc->drc_next_rrd, sizeof(*drc->drc_next_rrd));
 		drc->drc_next_rrd = NULL;
 		return (SET_ERROR(ECKSUM));
 	}
 
-	receive_cksum(drc, sizeof (cksum_orig), &cksum_orig);
+	receive_cksum(drc, sizeof(cksum_orig), &cksum_orig);
 
 	return (0);
 }
@@ -2483,11 +2674,12 @@ receive_read_payload_and_next_header(dmu_recv_cookie_t *drc, int len, void *buf)
 /* ARGSUSED */
 static void
 receive_read_prefetch(dmu_recv_cookie_t *drc, uint64_t object, uint64_t offset,
-    uint64_t length)
+					  uint64_t length)
 {
-	if (!objlist_exists(drc->drc_ignore_objlist, object)) {
+	if (!objlist_exists(drc->drc_ignore_objlist, object))
+	{
 		dmu_prefetch(drc->drc_os, object, 1, offset, length,
-		    ZIO_PRIORITY_SYNC_READ);
+					 ZIO_PRIORITY_SYNC_READ);
 	}
 }
 
@@ -2499,11 +2691,12 @@ receive_read_record(dmu_recv_cookie_t *drc)
 {
 	int err;
 
-	switch (drc->drc_rrd->header.drr_type) {
+	switch (drc->drc_rrd->header.drr_type)
+	{
 	case DRR_OBJECT:
 	{
 		struct drr_object *drro =
-		    &drc->drc_rrd->header.drr_u.drr_object;
+			&drc->drc_rrd->header.drr_u.drr_object;
 		uint32_t size = DRR_OBJECT_PAYLOAD_SIZE(drro);
 		void *buf = NULL;
 		dmu_object_info_t doi;
@@ -2512,7 +2705,8 @@ receive_read_record(dmu_recv_cookie_t *drc)
 			buf = kmem_zalloc(size, KM_SLEEP);
 
 		err = receive_read_payload_and_next_header(drc, size, buf);
-		if (err != 0) {
+		if (err != 0)
+		{
 			kmem_free(buf, size);
 			return (err);
 		}
@@ -2522,9 +2716,10 @@ receive_read_record(dmu_recv_cookie_t *drc)
 		 * storing this object in the ignore_obj_list.
 		 */
 		if (err == ENOENT || err == EEXIST ||
-		    (err == 0 && doi.doi_data_block_size != drro->drr_blksz)) {
+			(err == 0 && doi.doi_data_block_size != drro->drr_blksz))
+		{
 			objlist_insert(drc->drc_ignore_objlist,
-			    drro->drr_object);
+						   drro->drr_object);
 			err = 0;
 		}
 		return (err);
@@ -2540,31 +2735,33 @@ receive_read_record(dmu_recv_cookie_t *drc)
 		int size = DRR_WRITE_PAYLOAD_SIZE(drrw);
 		abd_t *abd = abd_alloc_linear(size, B_FALSE);
 		err = receive_read_payload_and_next_header(drc, size,
-		    abd_to_buf(abd));
-		if (err != 0) {
+												   abd_to_buf(abd));
+		if (err != 0)
+		{
 			abd_free(abd);
 			return (err);
 		}
 		drc->drc_rrd->abd = abd;
 		receive_read_prefetch(drc, drrw->drr_object, drrw->drr_offset,
-		    drrw->drr_logical_size);
+							  drrw->drr_logical_size);
 		return (err);
 	}
 	case DRR_WRITE_EMBEDDED:
 	{
 		struct drr_write_embedded *drrwe =
-		    &drc->drc_rrd->header.drr_u.drr_write_embedded;
+			&drc->drc_rrd->header.drr_u.drr_write_embedded;
 		uint32_t size = P2ROUNDUP(drrwe->drr_psize, 8);
 		void *buf = kmem_zalloc(size, KM_SLEEP);
 
 		err = receive_read_payload_and_next_header(drc, size, buf);
-		if (err != 0) {
+		if (err != 0)
+		{
 			kmem_free(buf, size);
 			return (err);
 		}
 
 		receive_read_prefetch(drc, drrwe->drr_object, drrwe->drr_offset,
-		    drrwe->drr_length);
+							  drrwe->drr_length);
 		return (err);
 	}
 	case DRR_FREE:
@@ -2581,7 +2778,7 @@ receive_read_record(dmu_recv_cookie_t *drc)
 	{
 		struct drr_end *drre = &drc->drc_rrd->header.drr_u.drr_end;
 		if (!ZIO_CHECKSUM_EQUAL(drc->drc_prev_cksum,
-		    drre->drr_checksum))
+								drre->drr_checksum))
 			return (SET_ERROR(ECKSUM));
 		return (0);
 	}
@@ -2591,7 +2788,7 @@ receive_read_record(dmu_recv_cookie_t *drc)
 		int size = DRR_SPILL_PAYLOAD_SIZE(drrs);
 		abd_t *abd = abd_alloc_linear(size, B_FALSE);
 		err = receive_read_payload_and_next_header(drc, size,
-		    abd_to_buf(abd));
+												   abd_to_buf(abd));
 		if (err != 0)
 			abd_free(abd);
 		else
@@ -2602,116 +2799,115 @@ receive_read_record(dmu_recv_cookie_t *drc)
 	{
 		err = receive_read_payload_and_next_header(drc, 0, NULL);
 		return (err);
-
 	}
 	default:
 		return (SET_ERROR(EINVAL));
 	}
 }
 
-
-
 static void
 dprintf_drr(struct receive_record_arg *rrd, int err)
 {
 #ifdef ZFS_DEBUG
-	switch (rrd->header.drr_type) {
+	switch (rrd->header.drr_type)
+	{
 	case DRR_OBJECT:
 	{
 		struct drr_object *drro = &rrd->header.drr_u.drr_object;
 		dprintf("drr_type = OBJECT obj = %llu type = %u "
-		    "bonustype = %u blksz = %u bonuslen = %u cksumtype = %u "
-		    "compress = %u dn_slots = %u err = %d\n",
-		    (u_longlong_t)drro->drr_object, drro->drr_type,
-		    drro->drr_bonustype, drro->drr_blksz, drro->drr_bonuslen,
-		    drro->drr_checksumtype, drro->drr_compress,
-		    drro->drr_dn_slots, err);
+				"bonustype = %u blksz = %u bonuslen = %u cksumtype = %u "
+				"compress = %u dn_slots = %u err = %d\n",
+				(u_longlong_t)drro->drr_object, drro->drr_type,
+				drro->drr_bonustype, drro->drr_blksz, drro->drr_bonuslen,
+				drro->drr_checksumtype, drro->drr_compress,
+				drro->drr_dn_slots, err);
 		break;
 	}
 	case DRR_FREEOBJECTS:
 	{
 		struct drr_freeobjects *drrfo =
-		    &rrd->header.drr_u.drr_freeobjects;
+			&rrd->header.drr_u.drr_freeobjects;
 		dprintf("drr_type = FREEOBJECTS firstobj = %llu "
-		    "numobjs = %llu err = %d\n",
-		    (u_longlong_t)drrfo->drr_firstobj,
-		    (u_longlong_t)drrfo->drr_numobjs, err);
+				"numobjs = %llu err = %d\n",
+				(u_longlong_t)drrfo->drr_firstobj,
+				(u_longlong_t)drrfo->drr_numobjs, err);
 		break;
 	}
 	case DRR_WRITE:
 	{
 		struct drr_write *drrw = &rrd->header.drr_u.drr_write;
 		dprintf("drr_type = WRITE obj = %llu type = %u offset = %llu "
-		    "lsize = %llu cksumtype = %u flags = %u "
-		    "compress = %u psize = %llu err = %d\n",
-		    (u_longlong_t)drrw->drr_object, drrw->drr_type,
-		    (u_longlong_t)drrw->drr_offset,
-		    (u_longlong_t)drrw->drr_logical_size,
-		    drrw->drr_checksumtype, drrw->drr_flags,
-		    drrw->drr_compressiontype,
-		    (u_longlong_t)drrw->drr_compressed_size, err);
+				"lsize = %llu cksumtype = %u flags = %u "
+				"compress = %u psize = %llu err = %d\n",
+				(u_longlong_t)drrw->drr_object, drrw->drr_type,
+				(u_longlong_t)drrw->drr_offset,
+				(u_longlong_t)drrw->drr_logical_size,
+				drrw->drr_checksumtype, drrw->drr_flags,
+				drrw->drr_compressiontype,
+				(u_longlong_t)drrw->drr_compressed_size, err);
 		break;
 	}
 	case DRR_WRITE_BYREF:
 	{
 		struct drr_write_byref *drrwbr =
-		    &rrd->header.drr_u.drr_write_byref;
+			&rrd->header.drr_u.drr_write_byref;
 		dprintf("drr_type = WRITE_BYREF obj = %llu offset = %llu "
-		    "length = %llu toguid = %llx refguid = %llx "
-		    "refobject = %llu refoffset = %llu cksumtype = %u "
-		    "flags = %u err = %d\n",
-		    (u_longlong_t)drrwbr->drr_object,
-		    (u_longlong_t)drrwbr->drr_offset,
-		    (u_longlong_t)drrwbr->drr_length,
-		    (u_longlong_t)drrwbr->drr_toguid,
-		    (u_longlong_t)drrwbr->drr_refguid,
-		    (u_longlong_t)drrwbr->drr_refobject,
-		    (u_longlong_t)drrwbr->drr_refoffset,
-		    drrwbr->drr_checksumtype, drrwbr->drr_flags, err);
+				"length = %llu toguid = %llx refguid = %llx "
+				"refobject = %llu refoffset = %llu cksumtype = %u "
+				"flags = %u err = %d\n",
+				(u_longlong_t)drrwbr->drr_object,
+				(u_longlong_t)drrwbr->drr_offset,
+				(u_longlong_t)drrwbr->drr_length,
+				(u_longlong_t)drrwbr->drr_toguid,
+				(u_longlong_t)drrwbr->drr_refguid,
+				(u_longlong_t)drrwbr->drr_refobject,
+				(u_longlong_t)drrwbr->drr_refoffset,
+				drrwbr->drr_checksumtype, drrwbr->drr_flags, err);
 		break;
 	}
 	case DRR_WRITE_EMBEDDED:
 	{
 		struct drr_write_embedded *drrwe =
-		    &rrd->header.drr_u.drr_write_embedded;
+			&rrd->header.drr_u.drr_write_embedded;
 		dprintf("drr_type = WRITE_EMBEDDED obj = %llu offset = %llu "
-		    "length = %llu compress = %u etype = %u lsize = %u "
-		    "psize = %u err = %d\n",
-		    (u_longlong_t)drrwe->drr_object,
-		    (u_longlong_t)drrwe->drr_offset,
-		    (u_longlong_t)drrwe->drr_length,
-		    drrwe->drr_compression, drrwe->drr_etype,
-		    drrwe->drr_lsize, drrwe->drr_psize, err);
+				"length = %llu compress = %u etype = %u lsize = %u "
+				"psize = %u err = %d\n",
+				(u_longlong_t)drrwe->drr_object,
+				(u_longlong_t)drrwe->drr_offset,
+				(u_longlong_t)drrwe->drr_length,
+				drrwe->drr_compression, drrwe->drr_etype,
+				drrwe->drr_lsize, drrwe->drr_psize, err);
 		break;
 	}
 	case DRR_FREE:
 	{
 		struct drr_free *drrf = &rrd->header.drr_u.drr_free;
 		dprintf("drr_type = FREE obj = %llu offset = %llu "
-		    "length = %lld err = %d\n",
-		    (u_longlong_t)drrf->drr_object,
-		    (u_longlong_t)drrf->drr_offset,
-		    (longlong_t)drrf->drr_length,
-		    err);
+				"length = %lld err = %d\n",
+				(u_longlong_t)drrf->drr_object,
+				(u_longlong_t)drrf->drr_offset,
+				(longlong_t)drrf->drr_length,
+				err);
 		break;
 	}
 	case DRR_SPILL:
 	{
 		struct drr_spill *drrs = &rrd->header.drr_u.drr_spill;
 		dprintf("drr_type = SPILL obj = %llu length = %llu "
-		    "err = %d\n", (u_longlong_t)drrs->drr_object,
-		    (u_longlong_t)drrs->drr_length, err);
+				"err = %d\n",
+				(u_longlong_t)drrs->drr_object,
+				(u_longlong_t)drrs->drr_length, err);
 		break;
 	}
 	case DRR_OBJECT_RANGE:
 	{
 		struct drr_object_range *drror =
-		    &rrd->header.drr_u.drr_object_range;
+			&rrd->header.drr_u.drr_object_range;
 		dprintf("drr_type = OBJECT_RANGE firstobj = %llu "
-		    "numslots = %llu flags = %u err = %d\n",
-		    (u_longlong_t)drror->drr_firstobj,
-		    (u_longlong_t)drror->drr_numslots,
-		    drror->drr_flags, err);
+				"numslots = %llu flags = %u err = %d\n",
+				(u_longlong_t)drror->drr_firstobj,
+				(u_longlong_t)drror->drr_numslots,
+				drror->drr_flags, err);
 		break;
 	}
 	default:
@@ -2725,7 +2921,7 @@ dprintf_drr(struct receive_record_arg *rrd, int err)
  */
 static int
 receive_process_record(struct receive_writer_arg *rwa,
-    struct receive_record_arg *rrd)
+					   struct receive_record_arg *rrd)
 {
 	int err;
 
@@ -2733,14 +2929,19 @@ receive_process_record(struct receive_writer_arg *rwa,
 	ASSERT3U(rrd->bytes_read, >=, rwa->bytes_read);
 	rwa->bytes_read = rrd->bytes_read;
 
-	if (rrd->header.drr_type != DRR_WRITE) {
+	if (rrd->header.drr_type != DRR_WRITE)
+	{
 		err = flush_write_batch(rwa);
-		if (err != 0) {
-			if (rrd->abd != NULL) {
+		if (err != 0)
+		{
+			if (rrd->abd != NULL)
+			{
 				abd_free(rrd->abd);
 				rrd->abd = NULL;
 				rrd->payload = NULL;
-			} else if (rrd->payload != NULL) {
+			}
+			else if (rrd->payload != NULL)
+			{
 				kmem_free(rrd->payload, rrd->payload_size);
 				rrd->payload = NULL;
 			}
@@ -2749,7 +2950,8 @@ receive_process_record(struct receive_writer_arg *rwa,
 		}
 	}
 
-	switch (rrd->header.drr_type) {
+	switch (rrd->header.drr_type)
+	{
 	case DRR_OBJECT:
 	{
 		struct drr_object *drro = &rrd->header.drr_u.drr_object;
@@ -2761,14 +2963,15 @@ receive_process_record(struct receive_writer_arg *rwa,
 	case DRR_FREEOBJECTS:
 	{
 		struct drr_freeobjects *drrfo =
-		    &rrd->header.drr_u.drr_freeobjects;
+			&rrd->header.drr_u.drr_freeobjects;
 		err = receive_freeobjects(rwa, drrfo);
 		break;
 	}
 	case DRR_WRITE:
 	{
 		err = receive_process_write_record(rwa, rrd);
-		if (err != EAGAIN) {
+		if (err != EAGAIN)
+		{
 			/*
 			 * On success, receive_process_write_record() returns
 			 * EAGAIN to indicate that we do not want to free
@@ -2783,7 +2986,7 @@ receive_process_record(struct receive_writer_arg *rwa,
 	case DRR_WRITE_EMBEDDED:
 	{
 		struct drr_write_embedded *drrwe =
-		    &rrd->header.drr_u.drr_write_embedded;
+			&rrd->header.drr_u.drr_write_embedded;
 		err = receive_write_embedded(rwa, drrwe, rrd->payload);
 		kmem_free(rrd->payload, rrd->payload_size);
 		rrd->payload = NULL;
@@ -2808,7 +3011,7 @@ receive_process_record(struct receive_writer_arg *rwa,
 	case DRR_OBJECT_RANGE:
 	{
 		struct drr_object_range *drror =
-		    &rrd->header.drr_u.drr_object_range;
+			&rrd->header.drr_u.drr_object_range;
 		err = receive_object_range(rwa, drror);
 		break;
 	}
@@ -2840,20 +3043,26 @@ receive_writer_thread(void *arg)
 	fstrans_cookie_t cookie = spl_fstrans_mark();
 
 	for (rrd = bqueue_dequeue(&rwa->q); !rrd->eos_marker;
-	    rrd = bqueue_dequeue(&rwa->q)) {
+		 rrd = bqueue_dequeue(&rwa->q))
+	{
 		/*
 		 * If there's an error, the main thread will stop putting things
 		 * on the queue, but we need to clear everything in it before we
 		 * can exit.
 		 */
 		int err = 0;
-		if (rwa->err == 0) {
+		if (rwa->err == 0)
+		{
 			err = receive_process_record(rwa, rrd);
-		} else if (rrd->abd != NULL) {
+		}
+		else if (rrd->abd != NULL)
+		{
 			abd_free(rrd->abd);
 			rrd->abd = NULL;
 			rrd->payload = NULL;
-		} else if (rrd->payload != NULL) {
+		}
+		else if (rrd->payload != NULL)
+		{
 			kmem_free(rrd->payload, rrd->payload_size);
 			rrd->payload = NULL;
 		}
@@ -2862,13 +3071,14 @@ receive_writer_thread(void *arg)
 		 * raw->write_batch), and will be used again, so we don't
 		 * free it.
 		 */
-		if (err != EAGAIN) {
+		if (err != EAGAIN)
+		{
 			if (rwa->err == 0)
 				rwa->err = err;
-			kmem_free(rrd, sizeof (*rrd));
+			kmem_free(rrd, sizeof(*rrd));
 		}
 	}
-	kmem_free(rrd, sizeof (*rrd));
+	kmem_free(rrd, sizeof(*rrd));
 
 	int err = flush_write_batch(rwa);
 	if (rwa->err == 0)
@@ -2891,17 +3101,18 @@ resume_check(dmu_recv_cookie_t *drc, nvlist_t *begin_nvl)
 	uint64_t resume_obj, resume_off;
 
 	if (nvlist_lookup_uint64(begin_nvl,
-	    "resume_object", &resume_obj) != 0 ||
-	    nvlist_lookup_uint64(begin_nvl,
-	    "resume_offset", &resume_off) != 0) {
+							 "resume_object", &resume_obj) != 0 ||
+		nvlist_lookup_uint64(begin_nvl,
+							 "resume_offset", &resume_off) != 0)
+	{
 		return (SET_ERROR(EINVAL));
 	}
 	VERIFY0(zap_lookup(mos, dsobj,
-	    DS_FIELD_RESUME_OBJECT, sizeof (val), 1, &val));
+					   DS_FIELD_RESUME_OBJECT, sizeof(val), 1, &val));
 	if (resume_obj != val)
 		return (SET_ERROR(EINVAL));
 	VERIFY0(zap_lookup(mos, dsobj,
-	    DS_FIELD_RESUME_OFFSET, sizeof (val), 1, &val));
+					   DS_FIELD_RESUME_OFFSET, sizeof(val), 1, &val));
 	if (resume_off != val)
 		return (SET_ERROR(EINVAL));
 
@@ -2920,17 +3131,17 @@ resume_check(dmu_recv_cookie_t *drc, nvlist_t *begin_nvl)
  *
  * NB: callers *must* call dmu_recv_end() if this succeeds.
  */
-int
-dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
+int dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 {
 	int err = 0;
-	struct receive_writer_arg *rwa = kmem_zalloc(sizeof (*rwa), KM_SLEEP);
+	struct receive_writer_arg *rwa = kmem_zalloc(sizeof(*rwa), KM_SLEEP);
 
-	if (dsl_dataset_has_resume_receive_state(drc->drc_ds)) {
+	if (dsl_dataset_has_resume_receive_state(drc->drc_ds))
+	{
 		uint64_t bytes = 0;
-		(void) zap_lookup(drc->drc_ds->ds_dir->dd_pool->dp_meta_objset,
-		    drc->drc_ds->ds_object, DS_FIELD_RESUME_BYTES,
-		    sizeof (bytes), 1, &bytes);
+		(void)zap_lookup(drc->drc_ds->ds_dir->dd_pool->dp_meta_objset,
+						 drc->drc_ds->ds_object, DS_FIELD_RESUME_BYTES,
+						 sizeof(bytes), 1, &bytes);
 		drc->drc_bytes_read += bytes;
 	}
 
@@ -2938,22 +3149,23 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 
 	/* these were verified in dmu_recv_begin */
 	ASSERT3U(DMU_GET_STREAM_HDRTYPE(drc->drc_drrb->drr_versioninfo), ==,
-	    DMU_SUBSTREAM);
+			 DMU_SUBSTREAM);
 	ASSERT3U(drc->drc_drrb->drr_type, <, DMU_OST_NUMTYPES);
 
 	ASSERT(dsl_dataset_phys(drc->drc_ds)->ds_flags & DS_FLAG_INCONSISTENT);
 	ASSERT0(drc->drc_os->os_encrypted &&
-	    (drc->drc_featureflags & DMU_BACKUP_FEATURE_EMBED_DATA));
+			(drc->drc_featureflags & DMU_BACKUP_FEATURE_EMBED_DATA));
 
 	/* handle DSL encryption key payload */
-	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RAW) {
+	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RAW)
+	{
 		nvlist_t *keynvl = NULL;
 
 		ASSERT(drc->drc_os->os_encrypted);
 		ASSERT(drc->drc_raw);
 
 		err = nvlist_lookup_nvlist(drc->drc_begin_nvl, "crypt_keydata",
-		    &keynvl);
+								   &keynvl);
 		if (err != 0)
 			goto out;
 
@@ -2964,21 +3176,22 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 		 * the keynvl away until then.
 		 */
 		err = dsl_crypto_recv_raw(spa_name(drc->drc_os->os_spa),
-		    drc->drc_ds->ds_object, drc->drc_fromsnapobj,
-		    drc->drc_drrb->drr_type, keynvl, drc->drc_newfs);
+								  drc->drc_ds->ds_object, drc->drc_fromsnapobj,
+								  drc->drc_drrb->drr_type, keynvl, drc->drc_newfs);
 		if (err != 0)
 			goto out;
 
 		/* see comment in dmu_recv_end_sync() */
 		drc->drc_ivset_guid = 0;
-		(void) nvlist_lookup_uint64(keynvl, "to_ivset_guid",
-		    &drc->drc_ivset_guid);
+		(void)nvlist_lookup_uint64(keynvl, "to_ivset_guid",
+								   &drc->drc_ivset_guid);
 
 		if (!drc->drc_newfs)
 			drc->drc_keynvl = fnvlist_dup(keynvl);
 	}
 
-	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RESUMING) {
+	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RESUMING)
+	{
 		err = resume_check(drc, drc->drc_begin_nvl);
 		if (err != 0)
 			goto out;
@@ -2991,9 +3204,9 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 	 */
 	drc->drc_should_save = B_TRUE;
 
-	(void) bqueue_init(&rwa->q, zfs_recv_queue_ff,
-	    MAX(zfs_recv_queue_length, 2 * zfs_max_recordsize),
-	    offsetof(struct receive_record_arg, node));
+	(void)bqueue_init(&rwa->q, zfs_recv_queue_ff,
+					  MAX(zfs_recv_queue_length, 2 * zfs_max_recordsize),
+					  offsetof(struct receive_record_arg, node));
 	cv_init(&rwa->cv, NULL, CV_DEFAULT, NULL);
 	mutex_init(&rwa->mutex, NULL, MUTEX_DEFAULT, NULL);
 	rwa->os = drc->drc_os;
@@ -3003,11 +3216,11 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 	rwa->spill = drc->drc_spill;
 	rwa->full = (drc->drc_drr_begin->drr_u.drr_begin.drr_fromguid == 0);
 	rwa->os->os_raw_receive = drc->drc_raw;
-	list_create(&rwa->write_batch, sizeof (struct receive_record_arg),
-	    offsetof(struct receive_record_arg, node.bqn_node));
+	list_create(&rwa->write_batch, sizeof(struct receive_record_arg),
+				offsetof(struct receive_record_arg, node.bqn_node));
 
-	(void) thread_create(NULL, 0, receive_writer_thread, rwa, 0, curproc,
-	    TS_RUN, minclsyspri);
+	(void)thread_create(NULL, 0, receive_writer_thread, rwa, 0, curproc,
+						TS_RUN, minclsyspri);
 	/*
 	 * We're reading rwa->err without locks, which is safe since we are the
 	 * only reader, and the worker thread is the only writer.  It's ok if we
@@ -3023,8 +3236,10 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 	 * it.  Finally, if receive_read_record fails or we're at the end of the
 	 * stream, then we free drc->drc_rrd and exit.
 	 */
-	while (rwa->err == 0) {
-		if (issig(JUSTLOOKING) && issig(FORREAL)) {
+	while (rwa->err == 0)
+	{
+		if (issig(JUSTLOOKING) && issig(FORREAL))
+		{
 			err = SET_ERROR(EINTR);
 			break;
 		}
@@ -3035,30 +3250,32 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 		/* Allocates and loads header into drc->drc_next_rrd */
 		err = receive_read_record(drc);
 
-		if (drc->drc_rrd->header.drr_type == DRR_END || err != 0) {
-			kmem_free(drc->drc_rrd, sizeof (*drc->drc_rrd));
+		if (drc->drc_rrd->header.drr_type == DRR_END || err != 0)
+		{
+			kmem_free(drc->drc_rrd, sizeof(*drc->drc_rrd));
 			drc->drc_rrd = NULL;
 			break;
 		}
 
 		bqueue_enqueue(&rwa->q, drc->drc_rrd,
-		    sizeof (struct receive_record_arg) +
-		    drc->drc_rrd->payload_size);
+					   sizeof(struct receive_record_arg) +
+						   drc->drc_rrd->payload_size);
 		drc->drc_rrd = NULL;
 	}
 
 	ASSERT3P(drc->drc_rrd, ==, NULL);
-	drc->drc_rrd = kmem_zalloc(sizeof (*drc->drc_rrd), KM_SLEEP);
+	drc->drc_rrd = kmem_zalloc(sizeof(*drc->drc_rrd), KM_SLEEP);
 	drc->drc_rrd->eos_marker = B_TRUE;
 	bqueue_enqueue_flush(&rwa->q, drc->drc_rrd, 1);
 
 	mutex_enter(&rwa->mutex);
-	while (!rwa->done) {
+	while (!rwa->done)
+	{
 		/*
 		 * We need to use cv_wait_sig() so that any process that may
 		 * be sleeping here can still fork.
 		 */
-		(void) cv_wait_sig(&rwa->cv, &rwa->mutex);
+		(void)cv_wait_sig(&rwa->cv, &rwa->mutex);
 	}
 	mutex_exit(&rwa->mutex);
 
@@ -3067,12 +3284,14 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 	 * are greater than the maximum ID referenced in the stream are
 	 * by definition unused and must be freed.
 	 */
-	if (drc->drc_clone && drc->drc_drrb->drr_fromguid == 0) {
+	if (drc->drc_clone && drc->drc_drrb->drr_fromguid == 0)
+	{
 		uint64_t obj = rwa->max_object + 1;
 		int free_err = 0;
 		int next_err = 0;
 
-		while (next_err == 0) {
+		while (next_err == 0)
+		{
 			free_err = dmu_free_long_object(rwa->os, obj);
 			if (free_err != 0 && free_err != ENOENT)
 				break;
@@ -3080,7 +3299,8 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 			next_err = dmu_object_next(rwa->os, &obj, FALSE, 0);
 		}
 
-		if (err == 0) {
+		if (err == 0)
+		{
 			if (free_err != 0 && free_err != ENOENT)
 				err = free_err;
 			else if (next_err != ESRCH)
@@ -3102,7 +3322,7 @@ out:
 	 * DRR_BEGIN record.
 	 */
 	if (drc->drc_next_rrd != NULL)
-		kmem_free(drc->drc_next_rrd, sizeof (*drc->drc_next_rrd));
+		kmem_free(drc->drc_next_rrd, sizeof(*drc->drc_next_rrd));
 
 	/*
 	 * The objset will be invalidated by dmu_recv_end() when we do
@@ -3110,10 +3330,11 @@ out:
 	 */
 	drc->drc_os = NULL;
 
-	kmem_free(rwa, sizeof (*rwa));
+	kmem_free(rwa, sizeof(*rwa));
 	nvlist_free(drc->drc_begin_nvl);
 
-	if (err != 0) {
+	if (err != 0)
+	{
 		/*
 		 * Clean up references. If receive is not resumable,
 		 * destroy what we created, so we don't leave it in
@@ -3138,13 +3359,15 @@ dmu_recv_end_check(void *arg, dmu_tx_t *tx)
 
 	ASSERT3P(drc->drc_ds->ds_owner, ==, dmu_recv_tag);
 
-	if (!drc->drc_newfs) {
+	if (!drc->drc_newfs)
+	{
 		dsl_dataset_t *origin_head;
 
 		error = dsl_dataset_hold(dp, drc->drc_tofs, FTAG, &origin_head);
 		if (error != 0)
 			return (error);
-		if (drc->drc_force) {
+		if (drc->drc_force)
+		{
 			/*
 			 * We will destroy any snapshots in tofs (i.e. before
 			 * origin_head) that are after the origin (which is
@@ -3155,55 +3378,63 @@ dmu_recv_end_check(void *arg, dmu_tx_t *tx)
 
 			obj = dsl_dataset_phys(origin_head)->ds_prev_snap_obj;
 			while (obj !=
-			    dsl_dataset_phys(drc->drc_ds)->ds_prev_snap_obj) {
+				   dsl_dataset_phys(drc->drc_ds)->ds_prev_snap_obj)
+			{
 				dsl_dataset_t *snap;
 				error = dsl_dataset_hold_obj(dp, obj, FTAG,
-				    &snap);
+											 &snap);
 				if (error != 0)
 					break;
 				if (snap->ds_dir != origin_head->ds_dir)
 					error = SET_ERROR(EINVAL);
-				if (error == 0)  {
+				if (error == 0)
+				{
 					error = dsl_destroy_snapshot_check_impl(
-					    snap, B_FALSE);
+						snap, B_FALSE);
 				}
 				obj = dsl_dataset_phys(snap)->ds_prev_snap_obj;
 				dsl_dataset_rele(snap, FTAG);
 				if (error != 0)
 					break;
 			}
-			if (error != 0) {
+			if (error != 0)
+			{
 				dsl_dataset_rele(origin_head, FTAG);
 				return (error);
 			}
 		}
-		if (drc->drc_keynvl != NULL) {
+		if (drc->drc_keynvl != NULL)
+		{
 			error = dsl_crypto_recv_raw_key_check(drc->drc_ds,
-			    drc->drc_keynvl, tx);
-			if (error != 0) {
+												  drc->drc_keynvl, tx);
+			if (error != 0)
+			{
 				dsl_dataset_rele(origin_head, FTAG);
 				return (error);
 			}
 		}
 
 		error = dsl_dataset_clone_swap_check_impl(drc->drc_ds,
-		    origin_head, drc->drc_force, drc->drc_owner, tx);
-		if (error != 0) {
+												  origin_head, drc->drc_force, drc->drc_owner, tx);
+		if (error != 0)
+		{
 			dsl_dataset_rele(origin_head, FTAG);
 			return (error);
 		}
 		error = dsl_dataset_snapshot_check_impl(origin_head,
-		    drc->drc_tosnap, tx, B_TRUE, 1,
-		    drc->drc_cred, drc->drc_proc);
+												drc->drc_tosnap, tx, B_TRUE, 1,
+												drc->drc_cred, drc->drc_proc);
 		dsl_dataset_rele(origin_head, FTAG);
 		if (error != 0)
 			return (error);
 
 		error = dsl_destroy_head_check_impl(drc->drc_ds, 1);
-	} else {
+	}
+	else
+	{
 		error = dsl_dataset_snapshot_check_impl(drc->drc_ds,
-		    drc->drc_tosnap, tx, B_TRUE, 1,
-		    drc->drc_cred, drc->drc_proc);
+												drc->drc_tosnap, tx, B_TRUE, 1,
+												drc->drc_cred, drc->drc_proc);
 	}
 	return (error);
 }
@@ -3217,16 +3448,18 @@ dmu_recv_end_sync(void *arg, dmu_tx_t *tx)
 	uint64_t newsnapobj;
 
 	spa_history_log_internal_ds(drc->drc_ds, "finish receiving",
-	    tx, "snap=%s", drc->drc_tosnap);
+								tx, "snap=%s", drc->drc_tosnap);
 	drc->drc_ds->ds_objset->os_raw_receive = B_FALSE;
 
-	if (!drc->drc_newfs) {
+	if (!drc->drc_newfs)
+	{
 		dsl_dataset_t *origin_head;
 
 		VERIFY0(dsl_dataset_hold(dp, drc->drc_tofs, FTAG,
-		    &origin_head));
+								 &origin_head));
 
-		if (drc->drc_force) {
+		if (drc->drc_force)
+		{
 			/*
 			 * Destroy any snapshots of drc_tofs (origin_head)
 			 * after the origin (the snap before drc_ds).
@@ -3235,29 +3468,31 @@ dmu_recv_end_sync(void *arg, dmu_tx_t *tx)
 
 			obj = dsl_dataset_phys(origin_head)->ds_prev_snap_obj;
 			while (obj !=
-			    dsl_dataset_phys(drc->drc_ds)->ds_prev_snap_obj) {
+				   dsl_dataset_phys(drc->drc_ds)->ds_prev_snap_obj)
+			{
 				dsl_dataset_t *snap;
 				VERIFY0(dsl_dataset_hold_obj(dp, obj, FTAG,
-				    &snap));
+											 &snap));
 				ASSERT3P(snap->ds_dir, ==, origin_head->ds_dir);
 				obj = dsl_dataset_phys(snap)->ds_prev_snap_obj;
 				dsl_destroy_snapshot_sync_impl(snap,
-				    B_FALSE, tx);
+											   B_FALSE, tx);
 				dsl_dataset_rele(snap, FTAG);
 			}
 		}
-		if (drc->drc_keynvl != NULL) {
+		if (drc->drc_keynvl != NULL)
+		{
 			dsl_crypto_recv_raw_key_sync(drc->drc_ds,
-			    drc->drc_keynvl, tx);
+										 drc->drc_keynvl, tx);
 			nvlist_free(drc->drc_keynvl);
 			drc->drc_keynvl = NULL;
 		}
 
 		VERIFY3P(drc->drc_ds->ds_prev, ==,
-		    origin_head->ds_prev);
+				 origin_head->ds_prev);
 
 		dsl_dataset_clone_swap_sync_impl(drc->drc_ds,
-		    origin_head, tx);
+										 origin_head, tx);
 		/*
 		 * The objset was evicted by dsl_dataset_clone_swap_sync_impl,
 		 * so drc_os is no longer valid.
@@ -3265,30 +3500,32 @@ dmu_recv_end_sync(void *arg, dmu_tx_t *tx)
 		drc->drc_os = NULL;
 
 		dsl_dataset_snapshot_sync_impl(origin_head,
-		    drc->drc_tosnap, tx);
+									   drc->drc_tosnap, tx);
 
 		/* set snapshot's creation time and guid */
 		dmu_buf_will_dirty(origin_head->ds_prev->ds_dbuf, tx);
 		dsl_dataset_phys(origin_head->ds_prev)->ds_creation_time =
-		    drc->drc_drrb->drr_creation_time;
+			drc->drc_drrb->drr_creation_time;
 		dsl_dataset_phys(origin_head->ds_prev)->ds_guid =
-		    drc->drc_drrb->drr_toguid;
+			drc->drc_drrb->drr_toguid;
 		dsl_dataset_phys(origin_head->ds_prev)->ds_flags &=
-		    ~DS_FLAG_INCONSISTENT;
+			~DS_FLAG_INCONSISTENT;
 
 		dmu_buf_will_dirty(origin_head->ds_dbuf, tx);
 		dsl_dataset_phys(origin_head)->ds_flags &=
-		    ~DS_FLAG_INCONSISTENT;
+			~DS_FLAG_INCONSISTENT;
 
 		newsnapobj =
-		    dsl_dataset_phys(origin_head)->ds_prev_snap_obj;
+			dsl_dataset_phys(origin_head)->ds_prev_snap_obj;
 
 		dsl_dataset_rele(origin_head, FTAG);
 		dsl_destroy_head_sync_impl(drc->drc_ds, tx);
 
 		if (drc->drc_owner != NULL)
 			VERIFY3P(origin_head->ds_owner, ==, drc->drc_owner);
-	} else {
+	}
+	else
+	{
 		dsl_dataset_t *ds = drc->drc_ds;
 
 		dsl_dataset_snapshot_sync_impl(ds, drc->drc_tosnap, tx);
@@ -3296,32 +3533,33 @@ dmu_recv_end_sync(void *arg, dmu_tx_t *tx)
 		/* set snapshot's creation time and guid */
 		dmu_buf_will_dirty(ds->ds_prev->ds_dbuf, tx);
 		dsl_dataset_phys(ds->ds_prev)->ds_creation_time =
-		    drc->drc_drrb->drr_creation_time;
+			drc->drc_drrb->drr_creation_time;
 		dsl_dataset_phys(ds->ds_prev)->ds_guid =
-		    drc->drc_drrb->drr_toguid;
+			drc->drc_drrb->drr_toguid;
 		dsl_dataset_phys(ds->ds_prev)->ds_flags &=
-		    ~DS_FLAG_INCONSISTENT;
+			~DS_FLAG_INCONSISTENT;
 
 		dmu_buf_will_dirty(ds->ds_dbuf, tx);
 		dsl_dataset_phys(ds)->ds_flags &= ~DS_FLAG_INCONSISTENT;
-		if (dsl_dataset_has_resume_receive_state(ds)) {
-			(void) zap_remove(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_FROMGUID, tx);
-			(void) zap_remove(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_OBJECT, tx);
-			(void) zap_remove(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_OFFSET, tx);
-			(void) zap_remove(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_BYTES, tx);
-			(void) zap_remove(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_TOGUID, tx);
-			(void) zap_remove(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_TONAME, tx);
-			(void) zap_remove(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS, tx);
+		if (dsl_dataset_has_resume_receive_state(ds))
+		{
+			(void)zap_remove(dp->dp_meta_objset, ds->ds_object,
+							 DS_FIELD_RESUME_FROMGUID, tx);
+			(void)zap_remove(dp->dp_meta_objset, ds->ds_object,
+							 DS_FIELD_RESUME_OBJECT, tx);
+			(void)zap_remove(dp->dp_meta_objset, ds->ds_object,
+							 DS_FIELD_RESUME_OFFSET, tx);
+			(void)zap_remove(dp->dp_meta_objset, ds->ds_object,
+							 DS_FIELD_RESUME_BYTES, tx);
+			(void)zap_remove(dp->dp_meta_objset, ds->ds_object,
+							 DS_FIELD_RESUME_TOGUID, tx);
+			(void)zap_remove(dp->dp_meta_objset, ds->ds_object,
+							 DS_FIELD_RESUME_TONAME, tx);
+			(void)zap_remove(dp->dp_meta_objset, ds->ds_object,
+							 DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS, tx);
 		}
 		newsnapobj =
-		    dsl_dataset_phys(drc->drc_ds)->ds_prev_snap_obj;
+			dsl_dataset_phys(drc->drc_ds)->ds_prev_snap_obj;
 	}
 
 	/*
@@ -3334,12 +3572,13 @@ dmu_recv_end_sync(void *arg, dmu_tx_t *tx)
 	 * tunable is set, in which case we will leave the newly-generated
 	 * value.
 	 */
-	if (drc->drc_raw && drc->drc_ivset_guid != 0) {
+	if (drc->drc_raw && drc->drc_ivset_guid != 0)
+	{
 		dmu_object_zapify(dp->dp_meta_objset, newsnapobj,
-		    DMU_OT_DSL_DATASET, tx);
+						  DMU_OT_DSL_DATASET, tx);
 		VERIFY0(zap_update(dp->dp_meta_objset, newsnapobj,
-		    DS_FIELD_IVSET_GUID, sizeof (uint64_t), 1,
-		    &drc->drc_ivset_guid, tx));
+						   DS_FIELD_IVSET_GUID, sizeof(uint64_t), 1,
+						   &drc->drc_ivset_guid, tx));
 	}
 
 	/*
@@ -3350,9 +3589,10 @@ dmu_recv_end_sync(void *arg, dmu_tx_t *tx)
 	 * we release the key mapping manually here while we do have a valid
 	 * pointer, if it exists.
 	 */
-	if (!drc->drc_raw && encrypted) {
-		(void) spa_keystore_remove_mapping(dmu_tx_pool(tx)->dp_spa,
-		    drc->drc_ds->ds_object, drc->drc_ds);
+	if (!drc->drc_raw && encrypted)
+	{
+		(void)spa_keystore_remove_mapping(dmu_tx_pool(tx)->dp_spa,
+										  drc->drc_ds->ds_object, drc->drc_ds);
 	}
 	dsl_dataset_disown(drc->drc_ds, 0, dmu_recv_tag);
 	drc->drc_ds = NULL;
@@ -3374,20 +3614,19 @@ dmu_recv_existing_end(dmu_recv_cookie_t *drc)
 #endif
 
 	return (dsl_sync_task(drc->drc_tofs,
-	    dmu_recv_end_check, dmu_recv_end_sync, drc,
-	    dmu_recv_end_modified_blocks, ZFS_SPACE_CHECK_NORMAL));
+						  dmu_recv_end_check, dmu_recv_end_sync, drc,
+						  dmu_recv_end_modified_blocks, ZFS_SPACE_CHECK_NORMAL));
 }
 
 static int
 dmu_recv_new_end(dmu_recv_cookie_t *drc)
 {
 	return (dsl_sync_task(drc->drc_tofs,
-	    dmu_recv_end_check, dmu_recv_end_sync, drc,
-	    dmu_recv_end_modified_blocks, ZFS_SPACE_CHECK_NORMAL));
+						  dmu_recv_end_check, dmu_recv_end_sync, drc,
+						  dmu_recv_end_modified_blocks, ZFS_SPACE_CHECK_NORMAL));
 }
 
-int
-dmu_recv_end(dmu_recv_cookie_t *drc, void *owner)
+int dmu_recv_end(dmu_recv_cookie_t *drc, void *owner)
 {
 	int error;
 
@@ -3398,15 +3637,19 @@ dmu_recv_end(dmu_recv_cookie_t *drc, void *owner)
 	else
 		error = dmu_recv_existing_end(drc);
 
-	if (error != 0) {
+	if (error != 0)
+	{
 		dmu_recv_cleanup_ds(drc);
 		nvlist_free(drc->drc_keynvl);
-	} else {
-		if (drc->drc_newfs) {
+	}
+	else
+	{
+		if (drc->drc_newfs)
+		{
 			zvol_create_minor(drc->drc_tofs);
 		}
 		char *snapname = kmem_asprintf("%s@%s",
-		    drc->drc_tofs, drc->drc_tosnap);
+									   drc->drc_tofs, drc->drc_tosnap);
 		zvol_create_minor(snapname);
 		kmem_strfree(snapname);
 	}
@@ -3420,16 +3663,16 @@ boolean_t
 dmu_objset_is_receiving(objset_t *os)
 {
 	return (os->os_dsl_dataset != NULL &&
-	    os->os_dsl_dataset->ds_owner == dmu_recv_tag);
+			os->os_dsl_dataset->ds_owner == dmu_recv_tag);
 }
 
 /* BEGIN CSTYLED */
 ZFS_MODULE_PARAM(zfs_recv, zfs_recv_, queue_length, INT, ZMOD_RW,
-	"Maximum receive queue length");
+				 "Maximum receive queue length");
 
 ZFS_MODULE_PARAM(zfs_recv, zfs_recv_, queue_ff, INT, ZMOD_RW,
-	"Receive queue fill fraction");
+				 "Receive queue fill fraction");
 
 ZFS_MODULE_PARAM(zfs_recv, zfs_recv_, write_batch_size, INT, ZMOD_RW,
-	"Maximum amount of writes to batch into one transaction");
+				 "Maximum amount of writes to batch into one transaction");
 /* END CSTYLED */
