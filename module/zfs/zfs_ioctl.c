@@ -6980,6 +6980,8 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 
 static const zfs_ioc_key_t zfs_keys_mlec_test[] = {
 	{"mybinarydata",	DATA_TYPE_ANY,	0},
+	{"objset_id", DATA_TYPE_UINT64, 0},
+	{"dn_object_id", DATA_TYPE_UINT64, 0},
 	{"optional",	DATA_TYPE_NVLIST,	ZK_OPTIONAL},
 };
 
@@ -6994,7 +6996,18 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
         // No need to free, if error code != 1, the tear down function will free the innvl for us
         return 1;
     }
-	zfs_dbgmsg("zfs_mlec_test() is called in ZFS kernel module with %s inputs\n", retrieved_data);
+
+	uint64_t objset_id;
+	if (nvlist_lookup_uint64(innvl, "objset_id", &objset_id)) {
+		return 1;
+	}
+
+	uint64_t dn_object_id;
+	if (nvlist_lookup_uint64(innvl, "dn_object_id", &dn_object_id)) {
+		return 1;
+	}
+
+	zfs_dbgmsg("zfs_mlec_test() is called in ZFS kernel module with objset id %d\n", objset_id);
 
 	// Now we should identify the block, row, and column, and call repair
 	// Reference to zio.c:zio_write() to how to initialize a zio write
@@ -7012,7 +7025,11 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		vdev_top->vdev_child[0]->vdev_physpath);
 
 	// 3. Find the dnode that is associated with the input data
-	blkptr block_to_repair = dsl_dataset_get_blkptr
+	dsl_dataset_t *dsl_dataset;
+	dsl_dataset_hold_obj(spa->spa_dsl_pool, objset_id, NULL, dsl_dataset);
+
+	// 4. Find the blkptr pointing to the block that require repair
+	dnode_hold(dsl_dataset->ds_objset, )
 
 	// 4. Get the binary data into abd
 	abd_t *repair_adb = abd_alloc_for_io(retrieved_data_size, B_FALSE);	
@@ -7033,6 +7050,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	zio_nowait(repair_zio);
 
 	// Close the spa, otherwise the pool is always busy
+	dsl_dataset_rele(dsl_dataset, NULL);
 	spa_close(spa, FTAG);
 
 	return 0;
