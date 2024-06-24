@@ -7013,7 +7013,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		return 1;
 	}
 
-	zfs_dbgmsg("zfs_mlec_test() is called with objset %d, dn %d, blk %d\n", objset_id, dn_object_id, blk_id);
+	zfs_dbgmsg("zfs_mlec_test() is called with objset %lld, dn %lld, blk %lld\n", objset_id, dn_object_id, blk_id);
 
 	// Now we should identify the block, row, and column, and call repair
 	// Reference to zio.c:zio_write() to how to initialize a zio write
@@ -7025,7 +7025,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	// 3. Find the vdev
 	vdev_t *vdev_top = vdev_lookup_top(spa, 0);
 	zfs_dbgmsg("vdev_top found");
-	zfs_dbgmsg("Found the vdev %s, number of children %d, first child path %s", 
+	zfs_dbgmsg("Found the vdev %s, number of children %lld, first child path %s", 
 		vdev_top->vdev_devid, 
 		vdev_top->vdev_children,
 		vdev_top->vdev_child[0]->vdev_physpath);
@@ -7039,7 +7039,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	dnode_hold(dsl_dataset->ds_objset, dn_object_id, FTAG, &dnode_repair);
 
 	// 5. Find the blkptr pointing to the ACTUAL BLOCK that we are writing the data to
-	blkptr_t *blk = dnode_repair->dn_phys->dn_blkptr[blk_id];
+	blkptr_t blk = dnode_repair->dn_phys->dn_blkptr[blk_id];
 
 	// 4. Get the binary data into abd
 	abd_t *repair_adb = abd_alloc_for_io(retrieved_data_size, B_FALSE);	
