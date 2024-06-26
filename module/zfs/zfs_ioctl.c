@@ -245,18 +245,7 @@ uint_t zfs_allow_log_key;
 #define DATA_TYPE_ANY DATA_TYPE_UNKNOWN
 #define DATA_TYPE_ANY DATA_TYPE_UNKNOWN
 
-typedef struct zfs_ioc_vec
-{
-	zfs_ioc_legacy_func_t *zvec_legacy_func;
-	zfs_ioc_func_t *zvec_func;
-	zfs_secpolicy_func_t *zvec_secpolicy;
-	zfs_ioc_namecheck_t zvec_namecheck;
-	boolean_t zvec_allow_log;
-	zfs_ioc_poolcheck_t zvec_pool_check;
-	boolean_t zvec_smush_outnvlist;
-	const char *zvec_name;
-	const zfs_ioc_key_t *zvec_nvl_keys;
-	size_t zvec_nvl_key_count;
+
 typedef struct zfs_ioc_vec
 {
 	zfs_ioc_legacy_func_t *zvec_legacy_func;
@@ -7403,8 +7392,6 @@ static int
 zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
 	// Retrieve the byte array from the nvlist
-	unsigned char *retrieved_data = NULL;
-	uint_t retrieved_data_size = 0;
 	unsigned char *retrieved_data = NULL;
 	uint_t retrieved_data_size = 0;
 
