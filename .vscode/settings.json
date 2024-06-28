@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "zfs_ioctl.h": "c"
+        "zfs_ioctl.h": "c",
+        "metaslab_impl.h": "c"
     }
 }

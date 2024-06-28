@@ -981,8 +981,8 @@ typedef enum zio_type {
 	ZIO_TYPE_CLAIM,
 	ZIO_TYPE_IOCTL,
 	ZIO_TYPE_TRIM,
-	ZIO_TYPES,
-	ZIO_TYPE_MLEC_WRITE_DATA
+	ZIO_TYPE_MLEC_WRITE_DATA,
+	ZIO_TYPES
 } zio_type_t;
 
 /*

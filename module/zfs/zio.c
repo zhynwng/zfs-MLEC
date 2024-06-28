@@ -62,10 +62,10 @@ const char *zio_type_name[ZIO_TYPES] = {
 	 * Note: Linux kernel thread name length is limited
 	 * so these names will differ from upstream open zfs.
 	 */
-	"z_null", "z_rd", "z_wr", "z_fr", "z_cl", "z_ioctl", "z_trim"};
+	"z_null", "z_rd", "z_wr", "z_fr", "z_cl", "z_ioctl", "z_trim", "z_mlecw"};
 
 int zio_dva_throttle_enabled = B_TRUE;
-int zio_deadman_log_all = B_FALSE;
+int zio_deadman_log_all = B_TRUE;
 
 /*
  * ==========================================================================
@@ -1362,7 +1362,13 @@ zio_ioctl(zio_t *pio, spa_t *spa, vdev_t *vd, int cmd,
 	zio_t *zio;
 	int c;
 
-	if (vd->vdev_children == 0)
+	if (pio != NULL && pio->io_type == ZIO_TYPE_MLEC_WRITE_DATA) {
+		zio = zio_create(pio, spa, 0, NULL, NULL, 0, 0, done, private,
+						 ZIO_TYPE_MLEC_WRITE_DATA, ZIO_PRIORITY_NOW, flags, vd, 0, NULL,
+						 ZIO_STAGE_OPEN, ZIO_IOCTL_PIPELINE);
+
+		zio->io_cmd = cmd;
+	} else if (vd->vdev_children == 0)
 	{
 		zio = zio_create(pio, spa, 0, NULL, NULL, 0, 0, done, private,
 						 ZIO_TYPE_IOCTL, ZIO_PRIORITY_NOW, flags, vd, 0, NULL,
@@ -2267,7 +2273,7 @@ __zio_execute(zio_t *zio)
 
 	while (zio->io_stage < ZIO_STAGE_DONE)
 	{
-		zfs_dbgmsg("Current io stage %d", zio->io_stage);
+		zfs_dbgmsg("Current io stage %d", highbit64(zio->io_stage));
 		enum zio_stage pipeline = zio->io_pipeline;
 		enum zio_stage stage = zio->io_stage;
 
@@ -2359,6 +2365,8 @@ int zio_wait(zio_t *zio)
 	zio->io_waiter = curthread;
 	ASSERT0(zio->io_queued_timestamp);
 	zio->io_queued_timestamp = gethrtime();
+
+	zfs_dbgmsg("The num of parent zio %d", zio->io_parent_count);
 
 	__zio_execute(zio);
 
@@ -4526,6 +4534,7 @@ zio_checksum_generate(zio_t *zio)
 static zio_t *
 zio_checksum_verify(zio_t *zio)
 {
+	zfs_dbgmsg("zio_checksum_verify() called");
 	zio_bad_cksum_t info;
 	blkptr_t *bp = zio->io_bp;
 	int error;
@@ -4753,6 +4762,7 @@ zio_dva_throttle_done(zio_t *zio)
 static zio_t *
 zio_done(zio_t *zio)
 {
+	zfs_dbgmsg("zio_done() called");
 	/*
 	 * Always attempt to keep stack usage minimal here since
 	 * we can be called recursively up to 19 levels deep.
@@ -4765,10 +4775,14 @@ zio_done(zio_t *zio)
 	 * If our children haven't all completed,
 	 * wait for them and then repeat this pipeline stage.
 	 */
+	zfs_dbgmsg("Waiting for children");
 	if (zio_wait_for_children(zio, ZIO_CHILD_ALL_BITS, ZIO_WAIT_DONE))
 	{
+		zfs_dbgmsg("wait for children error");
 		return (NULL);
 	}
+
+	zfs_dbgmsg("wait for children successful");
 
 	/*
 	 * If the allocation throttle is enabled, then update the accounting.
@@ -5058,6 +5072,7 @@ zio_done(zio_t *zio)
 			 * This is a rare code path, so we don't bother with
 			 * "next_to_execute".
 			 */
+			zfs_dbgmsg("Notifying parent that we are done");
 			zio_notify_parent(pio, zio, ZIO_WAIT_DONE, NULL);
 		}
 		else if (zio->io_reexecute & ZIO_REEXECUTE_SUSPEND)
@@ -5066,6 +5081,7 @@ zio_done(zio_t *zio)
 			 * We'd fail again if we reexecuted now, so suspend
 			 * until conditions improve (e.g. device comes online).
 			 */
+			zfs_dbgmsg("Suspending spa and zio");
 			zio_suspend(zio->io_spa, zio, ZIO_SUSPEND_IOERR);
 		}
 		else
@@ -5153,29 +5169,29 @@ zio_done(zio_t *zio)
  */
 static zio_pipe_stage_t *zio_pipeline[] = {
 	NULL,
-	zio_read_bp_init,
-	zio_write_bp_init,
-	zio_free_bp_init,
-	zio_issue_async,
-	zio_write_compress,
-	zio_encrypt,
-	zio_checksum_generate,
-	zio_nop_write,
-	zio_ddt_read_start,
-	zio_ddt_read_done,
-	zio_ddt_write,
-	zio_ddt_free,
-	zio_gang_assemble,
-	zio_gang_issue,
-	zio_dva_throttle,
-	zio_dva_allocate,
-	zio_dva_free,
-	zio_dva_claim,
+	zio_read_bp_init,   // 1
+	zio_write_bp_init,  // 2
+	zio_free_bp_init,   // 3
+	zio_issue_async,    // 4
+	zio_write_compress, // 5
+	zio_encrypt,        // 6
+	zio_checksum_generate, // 7
+	zio_nop_write,      // 8
+	zio_ddt_read_start, // 9
+	zio_ddt_read_done, // 10
+	zio_ddt_write,     // 11
+	zio_ddt_free,      // 12
+	zio_gang_assemble, // 13
+	zio_gang_issue,    // 14
+	zio_dva_throttle,  // 15
+	zio_dva_allocate,  // 16
+	zio_dva_free,      // 17
+	zio_dva_claim,     // 18
 	zio_ready,		   // 19
 	zio_vdev_io_start, // 20
-	zio_vdev_io_done,
-	zio_vdev_io_assess,
-	zio_checksum_verify,
+	zio_vdev_io_done,  // 21
+	zio_vdev_io_assess, // 22
+	zio_checksum_verify, // 23
 	zio_done // 24
 };
 

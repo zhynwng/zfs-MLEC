@@ -196,9 +196,14 @@ vdev_raidz_map_alloc(zio_t *zio, uint64_t ashift, uint64_t dcols,
 	uint64_t o = (b / dcols) << ashift;
 	uint64_t q, r, c, bc, col, acols, scols, coff, devidx, asize, tot;
 
+	zfs_dbgmsg("zio size %ld", zio->io_size);
+	zfs_dbgmsg("dcols, nparity: %ld, %ld", dcols, nparity);
+	zfs_dbgmsg("b, s, f, o: %ld, %ld, %ld, %ld", b, s, f, o);
+	zfs_dbgmsg("allocating row");
 	raidz_map_t *rm =
 	    kmem_zalloc(offsetof(raidz_map_t, rm_row[1]), KM_SLEEP);
 	rm->rm_nrows = 1;
+	zfs_dbgmsg("allocated row");
 
 	/*
 	 * "Quotient": The number of data sectors for this stripe on all but
@@ -236,8 +241,10 @@ vdev_raidz_map_alloc(zio_t *zio, uint64_t ashift, uint64_t dcols,
 
 	ASSERT3U(acols, <=, scols);
 
+	zfs_dbgmsg("allocating columns");
 	rr = kmem_alloc(offsetof(raidz_row_t, rr_col[scols]), KM_SLEEP);
 	rm->rm_row[0] = rr;
+	zfs_dbgmsg("allocated columns");
 
 	rr->rr_cols = acols;
 	rr->rr_scols = scols;
@@ -254,6 +261,7 @@ vdev_raidz_map_alloc(zio_t *zio, uint64_t ashift, uint64_t dcols,
 
 	asize = 0;
 
+	zfs_dbgmsg("Total number of columns %d", scols);
 	for (c = 0; c < scols; c++) {
 		raidz_col_t *rc = &rr->rr_col[c];
 		col = f + c;
@@ -280,16 +288,21 @@ vdev_raidz_map_alloc(zio_t *zio, uint64_t ashift, uint64_t dcols,
 		else
 			rc->rc_size = q << ashift;
 
+		zfs_dbgmsg("column %d has rc_size %d", c, rc->rc_size);
 		asize += rc->rc_size;
 	}
+
+	zfs_dbgmsg("popualted columns");
 
 	ASSERT3U(asize, ==, tot << ashift);
 	rm->rm_nskip = roundup(tot, nparity + 1) - tot;
 	rm->rm_skipstart = bc;
 
-	for (c = 0; c < rr->rr_firstdatacol; c++)
+	for (c = 0; c < rr->rr_firstdatacol; c++) {
+		zfs_dbgmsg("Allocating abd of size %ld", rr->rr_col[c].rc_size);
 		rr->rr_col[c].rc_abd =
 		    abd_alloc_linear(rr->rr_col[c].rc_size, B_FALSE);
+	}
 
 	for (uint64_t off = 0; c < acols; c++) {
 		raidz_col_t *rc = &rr->rr_col[c];
@@ -297,6 +310,8 @@ vdev_raidz_map_alloc(zio_t *zio, uint64_t ashift, uint64_t dcols,
 		    zio->io_abd, off, rc->rc_size);
 		off += rc->rc_size;
 	}
+
+	zfs_dbgmsg("allocated adb for columns");
 
 	/*
 	 * If all data stored spans all columns, there's a danger that parity
@@ -1529,6 +1544,7 @@ vdev_raidz_io_verify(vdev_t *vd, raidz_row_t *rr, int col)
 static void
 vdev_raidz_io_start_write(zio_t *zio, raidz_row_t *rr, uint64_t ashift)
 {
+	zfs_dbgmsg("vdev_raidz_io_start_write() called");
 	vdev_t *vd = zio->io_vd;
 	raidz_map_t *rm = zio->io_vsd;
 	int c, i;
@@ -1636,10 +1652,12 @@ vdev_raidz_io_start(zio_t *zio)
 	vdev_t *tvd = vd->vdev_top;
 	vdev_raidz_t *vdrz = vd->vdev_tsd;
 
+	zfs_dbgmsg("allocating raidz map");
 	raidz_map_t *rm = vdev_raidz_map_alloc(zio, tvd->vdev_ashift,
 	    vdrz->vd_logical_width, vdrz->vd_nparity);
 	zio->io_vsd = rm;
 	zio->io_vsd_ops = &vdev_raidz_vsd_ops;
+	zfs_dbgmsg("raidz map allocated");
 
 	/*
 	 * Until raidz expansion is implemented all maps for a raidz vdev
@@ -1648,10 +1666,15 @@ vdev_raidz_io_start(zio_t *zio)
 	ASSERT3U(rm->rm_nrows, ==, 1);
 	raidz_row_t *rr = rm->rm_row[0];
 
-	if (zio->io_type == ZIO_TYPE_WRITE) {
+	zfs_dbgmsg("io_type raw %d", zio->io_type);
+	if (zio->io_type == ZIO_TYPE_MLEC_WRITE_DATA) {
+		zfs_dbgmsg("MLEC data write");
+	} else if (zio->io_type == ZIO_TYPE_WRITE) {
+		zfs_dbgmsg("raidz write");
 		vdev_raidz_io_start_write(zio, rr, tvd->vdev_ashift);
 	} else {
 		ASSERT(zio->io_type == ZIO_TYPE_READ);
+		zfs_dbgmsg("raidz read");
 		vdev_raidz_io_start_read(zio, rr);
 	}
 

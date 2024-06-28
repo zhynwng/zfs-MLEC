@@ -7463,20 +7463,20 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	zfs_dbgmsg("abd opened and buffer copied");
 
 	// 5. We will use the rewrite pipeline
-	zio_t *pio = zio_root(spa, NULL, NULL, ZIO_FLAG_CANFAIL);
-	pio->io_type = ZIO_TYPE_MLEC_WRITE_DATA;
-
-	// 6. We need to find the blkptr
-	// zio_t *repair_zio = zio_rewrite(pio, spa, 0, )
-	zio_t *repair_zio = zio_ioctl(pio, spa, vdev_top, 0, NULL, NULL, ZIO_FLAG_CANFAIL);
+	// zio_t *repair_zio = zio_rewrite(NULL, spa, 0, &blk, repair_adb, retrieved_data_size, NULL, NULL, ZIO_PRIORITY_NOW, ZIO_FLAG_CANFAIL, NULL);
+	// The old ioctl pipeline impl
+	zio_t *repair_pio = zio_root(spa, NULL, NULL, ZIO_FLAG_CANFAIL);
+	repair_pio->io_type = ZIO_TYPE_MLEC_WRITE_DATA;
+	zio_t *repair_zio = zio_ioctl(repair_pio, spa, vdev_top, 0, NULL, NULL, ZIO_FLAG_CANFAIL);
 	repair_zio->io_abd = repair_adb;
-
-	zfs_dbgmsg("abd created and copied from buffer and zio allocated");
+	repair_zio->io_size = retrieved_data_size;
 
 	// 5. Call the zio pipeline
-	// zio_nowait(repair_zio);
+	zio_nowait(repair_zio);
 
 	// Close the spa, otherwise the pool is always busy
+	abd_free(repair_adb);
+	dnode_rele(dnode_repair, FTAG);
 	dsl_dataset_rele(dsl_dataset, FTAG);
 	spa_close(spa, FTAG);
 
