@@ -1541,6 +1541,10 @@ vdev_raidz_io_verify(vdev_t *vd, raidz_row_t *rr, int col)
 #endif
 }
 
+static void vdev_raidz_mlec_write(zio_t * zio, raidz_row *rr, uint64_t ashift) {
+
+}
+
 static void
 vdev_raidz_io_start_write(zio_t *zio, raidz_row_t *rr, uint64_t ashift)
 {
@@ -1669,6 +1673,7 @@ vdev_raidz_io_start(zio_t *zio)
 	zfs_dbgmsg("io_type raw %d", zio->io_type);
 	if (zio->io_type == ZIO_TYPE_MLEC_WRITE_DATA) {
 		zfs_dbgmsg("MLEC data write");
+		vdev_raidz_mlec_write(zio, rr, tvd->vdev_ashift);
 	} else if (zio->io_type == ZIO_TYPE_WRITE) {
 		zfs_dbgmsg("raidz write");
 		vdev_raidz_io_start_write(zio, rr, tvd->vdev_ashift);

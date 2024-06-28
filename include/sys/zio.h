@@ -505,6 +505,8 @@ struct zio {
 
 	/* Taskq dispatching state */
 	taskq_ent_t	io_tqent;
+
+	char test_tag[20];
 };
 
 enum blk_verify_flag {
