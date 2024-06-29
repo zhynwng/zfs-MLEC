@@ -261,7 +261,7 @@ vdev_raidz_map_alloc(zio_t *zio, uint64_t ashift, uint64_t dcols,
 
 	asize = 0;
 
-	zfs_dbgmsg("Total number of columns %d", scols);
+	zfs_dbgmsg("Total number of columns %ld", scols);
 	for (c = 0; c < scols; c++) {
 		raidz_col_t *rc = &rr->rr_col[c];
 		col = f + c;
@@ -288,7 +288,7 @@ vdev_raidz_map_alloc(zio_t *zio, uint64_t ashift, uint64_t dcols,
 		else
 			rc->rc_size = q << ashift;
 
-		zfs_dbgmsg("column %d has rc_size %d", c, rc->rc_size);
+		zfs_dbgmsg("column %ld has rc_size %ld", c, rc->rc_size);
 		asize += rc->rc_size;
 	}
 
@@ -1541,8 +1541,8 @@ vdev_raidz_io_verify(vdev_t *vd, raidz_row_t *rr, int col)
 #endif
 }
 
-static void vdev_raidz_mlec_write(zio_t * zio, raidz_row *rr, uint64_t ashift) {
-
+static void vdev_raidz_mlec_write(zio_t * zio, raidz_row_t *rr, uint64_t col_idx, uint64_t ashift) {
+	// zio_nowait(zio_vdev_child_io(zio, ))
 }
 
 static void
@@ -1673,7 +1673,7 @@ vdev_raidz_io_start(zio_t *zio)
 	zfs_dbgmsg("io_type raw %d", zio->io_type);
 	if (zio->io_type == ZIO_TYPE_MLEC_WRITE_DATA) {
 		zfs_dbgmsg("MLEC data write");
-		vdev_raidz_mlec_write(zio, rr, tvd->vdev_ashift);
+		// vdev_raidz_mlec_write(zio, rr, tvd->vdev_ashift);
 	} else if (zio->io_type == ZIO_TYPE_WRITE) {
 		zfs_dbgmsg("raidz write");
 		vdev_raidz_io_start_write(zio, rr, tvd->vdev_ashift);

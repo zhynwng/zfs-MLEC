@@ -2366,7 +2366,7 @@ int zio_wait(zio_t *zio)
 	ASSERT0(zio->io_queued_timestamp);
 	zio->io_queued_timestamp = gethrtime();
 
-	zfs_dbgmsg("The num of parent zio %d", zio->io_parent_count);
+	zfs_dbgmsg("The num of parent zio %ld", zio->io_parent_count);
 
 	__zio_execute(zio);
 

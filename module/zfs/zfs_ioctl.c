@@ -7470,6 +7470,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	zio_t *repair_zio = zio_ioctl(repair_pio, spa, vdev_top, 0, NULL, NULL, ZIO_FLAG_CANFAIL);
 	repair_zio->io_abd = repair_adb;
 	repair_zio->io_size = retrieved_data_size;
+	repair_zio->mlec_write_target = &blk;
 
 	// 5. Call the zio pipeline
 	zio_nowait(repair_zio);
