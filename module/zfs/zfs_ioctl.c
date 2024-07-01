@@ -7385,6 +7385,7 @@ static const zfs_ioc_key_t zfs_keys_mlec_test[] = {
 	{"objset_id", DATA_TYPE_UINT64, 0},
 	{"dn_object_id", DATA_TYPE_UINT64, 0},
 	{"blk_id", DATA_TYPE_UINT64, 0},
+	{"col_idx", DATA_TYPE_UINT64, 0},
 	{"optional", DATA_TYPE_NVLIST, ZK_OPTIONAL},
 };
 
@@ -7408,6 +7409,9 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 
 	uint64_t blk_id;
 	innvl_err += nvlist_lookup_uint64(innvl, "blk_id", &blk_id);
+
+	uint64_t col_idx;
+	innvl_err += nvlist_lookup_uint64(innvl, "col_idx", &col_idx);
 
 	if (innvl_err)
 	{
@@ -7471,6 +7475,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	repair_zio->io_abd = repair_adb;
 	repair_zio->io_size = retrieved_data_size;
 	repair_zio->mlec_write_target = &blk;
+	repair_zio->mlec_write_col_idx = col_idx;
 
 	// 5. Call the zio pipeline
 	zio_nowait(repair_zio);
