@@ -1548,7 +1548,11 @@ static void vdev_raidz_mlec_write(zio_t * zio, raidz_row_t *rr, uint64_t ashift)
 	raidz_col_t *rc = &rr->rr_col[col_idx];
 
 	zfs_dbgmsg("vdev_raidz_mlec_write called with col_idx %ld", col_idx);
-	// zio_nowait(zio_vdev_child_io(zio, zio->mlec_write_target, zio->io_vd))
+	zfs_dbgmsg("Calling child %ld with offset %ld, and rc size %ld", col_idx, rc->rc_offset, rc->rc_size);
+
+	// Test print the abd content
+	zfs_dbgmsg("The abd content is %s", zio->io_abd);
+	// zio_nowait(zio_vdev_child_io(zio, NULL, vd->vdev_child[col_idx], rc->rc_offset, rc->rc_abd, rc->rc_size, zio->io_type, zio->io_priority, 0, NULL, rc));
 }
 
 static void

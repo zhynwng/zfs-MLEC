@@ -7464,7 +7464,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	// 4. Get the binary data into abd
 	abd_t *repair_adb = abd_alloc_for_io(retrieved_data_size, B_FALSE);
 	abd_copy_from_buf(repair_adb, retrieved_data, retrieved_data_size);
-	zfs_dbgmsg("abd opened and buffer copied");
+	zfs_dbgmsg("abd opened and buffer copied, content is %s", abd_to_buf(repair_adb));
 
 	// 5. We will use the rewrite pipeline
 	// zio_t *repair_zio = zio_rewrite(NULL, spa, 0, &blk, repair_adb, retrieved_data_size, NULL, NULL, ZIO_PRIORITY_NOW, ZIO_FLAG_CANFAIL, NULL);
