@@ -3984,7 +3984,7 @@ zio_vdev_io_start(zio_t *zio)
 		uint64_t asize = P2ROUNDUP(zio->io_size, align);
 		abd_t *abuf = abd_alloc_sametype(zio->io_abd, asize);
 		ASSERT(vd == vd->vdev_top);
-		if (zio->io_type == ZIO_TYPE_WRITE)
+		if (zio->io_type == ZIO_TYPE_WRITE || zio->io_type == ZIO_TYPE_MLEC_WRITE_DATA)
 		{
 			abd_copy(abuf, zio->io_abd, zio->io_size);
 			abd_zero_off(abuf, zio->io_size, asize - zio->io_size);
