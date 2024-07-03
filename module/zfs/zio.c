@@ -2288,6 +2288,8 @@ __zio_execute(zio_t *zio)
 			stage <<= 1;
 		} while ((stage & pipeline) == 0);
 
+		zfs_dbgmsg("After while loop, stage is %d", highbit64(stage));
+
 		ASSERT(stage <= ZIO_STAGE_DONE);
 		/*
 		 * If we are in interrupt context and this pipeline stage
@@ -4091,8 +4093,11 @@ zio_vdev_io_start(zio_t *zio)
 		zio->io_delay = gethrtime();
 	}
 
-	zfs_dbgmsg("Calling vdev_ops io_start, vd ops type %s", vd->vdev_ops->vdev_op_type);
+	zfs_dbgmsg("Calling vdev_op_io_start, vd ops type %s", vd->vdev_ops->vdev_op_type);
+	zfs_dbgmsg("%p", vd->vdev_ops->vdev_op_io_start);
 	vd->vdev_ops->vdev_op_io_start(zio);
+	zfs_dbgmsg("-------");
+	
 	return (NULL);
 }
 

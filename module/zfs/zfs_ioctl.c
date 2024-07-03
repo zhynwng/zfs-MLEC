@@ -7471,6 +7471,9 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	// The old ioctl pipeline impl
 	zio_t *repair_pio = zio_root(spa, NULL, NULL, ZIO_FLAG_CANFAIL);
 	repair_pio->io_type = ZIO_TYPE_MLEC_WRITE_DATA;
+
+	// zio_t *repair_zio = zio_write_phys(repair_pio, vdev_top, 0, retrieved_data_size, repair_adb, 0, NULL, NULL, ZIO_PRIORITY_NOW, ZIO_FLAG_CANFAIL, NULL)
+
 	zio_t *repair_zio = zio_ioctl(repair_pio, spa, vdev_top, 0, NULL, NULL, ZIO_FLAG_CANFAIL);
 	repair_zio->io_abd = repair_adb;
 	repair_zio->io_size = retrieved_data_size;

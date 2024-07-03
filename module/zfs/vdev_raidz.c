@@ -1661,7 +1661,7 @@ vdev_raidz_io_start_read(zio_t *zio, raidz_row_t *rr)
 static void
 vdev_raidz_io_start(zio_t *zio)
 {
-	zfs_dbgmsg("vdev_raidz_io_start: %s", zio_type_name[zio->io_type]);
+	zfs_dbgmsg("vdev_raidz_io_start");
 	vdev_t *vd = zio->io_vd;
 	vdev_t *tvd = vd->vdev_top;
 	vdev_raidz_t *vdrz = vd->vdev_tsd;
