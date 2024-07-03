@@ -209,6 +209,8 @@ vdev_file_io_strategy(void *arg)
 	size = zio->io_size;
 	resid = 0;
 
+	zfs_dbgmsg("file dev %s write at offset %ld, size %ld", vd->vdev_path, off, size,);
+
 	if (zio->io_type == ZIO_TYPE_READ) {
 		buf = abd_borrow_buf(zio->io_abd, zio->io_size);
 		err = zfs_file_pread(vf->vf_file, buf, size, off, &resid);
