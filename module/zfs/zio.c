@@ -3984,11 +3984,14 @@ zio_vdev_io_start(zio_t *zio)
 		uint64_t asize = P2ROUNDUP(zio->io_size, align);
 		abd_t *abuf = abd_alloc_sametype(zio->io_abd, asize);
 		ASSERT(vd == vd->vdev_top);
+
 		if (zio->io_type == ZIO_TYPE_WRITE || zio->io_type == ZIO_TYPE_MLEC_WRITE_DATA)
 		{
+			zfs_dbgmsg("Copying abd content in vdev_io_start to abuf, content %s", abd_to_buf(zio->io_abd));
 			abd_copy(abuf, zio->io_abd, zio->io_size);
 			abd_zero_off(abuf, zio->io_size, asize - zio->io_size);
 		}
+
 		zio_push_transform(zio, abuf, asize, asize, zio_subblock);
 	}
 
