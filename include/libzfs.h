@@ -283,7 +283,7 @@ typedef struct trimflags {
  * Functions to manipulate pool and vdev state
  */
 extern int zpool_scan(zpool_handle_t *, pool_scan_func_t, pool_scrub_cmd_t);
-extern int zpool_easy_scan(zpool_handle_t *, pool_scan_func_t, pool_scrub_cmd_t);
+extern int zpool_easy_scan(zpool_handle_t *);
 extern int zpool_initialize(zpool_handle_t *, pool_initialize_func_t,
     nvlist_t *);
 extern int zpool_initialize_wait(zpool_handle_t *, pool_initialize_func_t,

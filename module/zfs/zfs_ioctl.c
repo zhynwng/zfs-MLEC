@@ -7366,22 +7366,31 @@ zfs_ioc_pool_easy_scan(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
 	zfs_dbgmsg("zfs_ioc_pool_easy_scan called");
 	spa_t *spa;
-	int error;
 
-	if ((error = spa_open(poolname, &spa, FTAG)) != 0) {
+	if (spa_open(poolname, &spa, FTAG)) {
 		zfs_dbgmsg("spa cannot be opened");
-		return (error);
+		return 2;
 	}
 
 	vdev_t *top_vdev = vdev_lookup_top(spa, 0);
- 
-	error = vdev_open(top_vdev);
-	zfs_dbgmsg("vdev_reopen returned %d", error);
 
-	vdev_close(top_vdev);
+	// Check how many children it has
+	if (top_vdev->vdev_children == 0) {
+		return 1;
+	}
+
+	int16_t child_status[top_vdev->vdev_children];
+
+	for (int i = 0; i < top_vdev->vdev_children; i++) {
+		child_status[i] = vdev_open(top_vdev->vdev_child[i]);
+		zfs_dbgmsg("child status %d is %d", i, child_status[i]);
+	}
+
+	nvlist_add_int16_array(outnvl, "children_status", child_status, top_vdev->vdev_children);
+
 	spa_close(spa, FTAG);
 
-	return (error);
+	return 0;
 }
 
 // Always return 0

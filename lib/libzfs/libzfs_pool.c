@@ -2557,35 +2557,48 @@ zpool_scan(zpool_handle_t *zhp, pool_scan_func_t func, pool_scrub_cmd_t cmd)
 
 /* Easy Zpool scan for easy scrub. */
 int
-zpool_easy_scan(zpool_handle_t *zhp, pool_scan_func_t func, pool_scrub_cmd_t cmd)
+zpool_easy_scan(zpool_handle_t *zhp)
 {
-	zfs_cmd_t zc = {"\0"};
+	zfs_cmd_t zc;
 	libzfs_handle_t *hdl = zhp->zpool_hdl;
-	char msg[1024];
 
+	// Copy the zc name
 	(void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
-	zc.zc_cookie = func;
-	zc.zc_flags = cmd;
+
+	// Set output size
+	// TODO: fix this excessive memory allocation
+	zc.zc_nvlist_dst_size = 56;
+	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
 
 	errno = 0;
-	printf("Calling zfs_ioctl with cmd %d\n", ZFS_IOC_POOL_EASY_SCAN);
 	errno = zfs_ioctl(hdl, ZFS_IOC_POOL_EASY_SCAN, &zc);
 
-	printf("error no %d\n", errno);
+	printf("Error no %d\n", errno);
+	// Read the nvlist
+
+	// nvlist_t *out;
+	// nvlist_alloc(out, NV_UNIQUE_NAME, 0);
+
+	// printf("unpacking");
+	// nvlist_unpack(zc.zc_nvlist_dst, zc.zc_nvlist_dst_size, &out, 0);
+	// printf("looking up");
+	// int child_status[3];
+	// int error = nvlist_lookup_int16_array(out, "children_status", child_status, 3);
+	// if (error) {
+	// 	printf("Error while looking up out nvlist, error %d\n", error);
+	// }
+
+	// for (int i = 0; i < 3; i++) {
+	// 	printf(child_status[i] + ", ");
+	// }
 
 	if (errno) {
 		printf("easy scrub detect disk failures for %s\n", zc.zc_name);
 	}
 
+	// nvlist_free(out);
+
 	return 0;
-	/*
-	char msg[1024];
-	int err;
-	err = errno;
-	*/
-
-	/* We will do error handling later. */
-
 }
 
 /*

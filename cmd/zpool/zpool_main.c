@@ -7290,11 +7290,7 @@ scrub_callback(zpool_handle_t *zhp, void *data)
 static int 
 easy_scrub_callback(zpool_handle_t *zhp, void *data) 
 {
-	scrub_cbdata_t *cb = data;
-	int err;
-
-	err = zpool_easy_scan(zhp, cb->cb_type, cb->cb_scrub_cmd);
-	return (err != 0);
+	return zpool_easy_scan(zhp);
 }
 
 static int
