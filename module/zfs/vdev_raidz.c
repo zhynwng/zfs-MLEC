@@ -187,12 +187,14 @@ vdev_raidz_map_alloc(zio_t *zio, uint64_t ashift, uint64_t dcols,
 {
 	raidz_row_t *rr;
 	/* The starting RAIDZ (parent) vdev sector of the block. */
+	// b is in the unit of sector, the parent vdev sector, which sector in parent should we start reading
 	uint64_t b = zio->io_offset >> ashift;
 	/* The zio's size in units of the vdev's minimum sector size. */
 	uint64_t s = zio->io_size >> ashift;
 	/* The first column for this stripe. */
 	uint64_t f = b % dcols;
 	/* The starting byte offset on each child vdev. */
+	// Question? why is this / dcols, not (dcols - 1)? 
 	uint64_t o = (b / dcols) << ashift;
 	uint64_t q, r, c, bc, col, acols, scols, coff, devidx, asize, tot;
 
@@ -1552,7 +1554,7 @@ static void vdev_raidz_mlec_write(zio_t * zio, raidz_row_t *rr, uint64_t ashift)
 
 	// Test print the abd content
 	zfs_dbgmsg("The abd content is %s with size %ld", zio->io_abd, zio->io_size);
-	// zio_nowait(zio_vdev_child_io(zio, NULL, vd->vdev_child[col_idx], rc->rc_offset, rc->rc_abd, rc->rc_size, zio->io_type, zio->io_priority, 0, NULL, rc));
+	zio_nowait(zio_vdev_child_io(zio, zio->mlec_write_target, vd->vdev_child[col_idx], rc->rc_offset, rc->rc_abd, rc->rc_size, zio->io_type, zio->io_priority, 0, NULL, rc));
 }
 
 static void
@@ -1601,6 +1603,7 @@ vdev_raidz_io_start_write(zio_t *zio, raidz_row_t *rr, uint64_t ashift)
 static void
 vdev_raidz_io_start_read(zio_t *zio, raidz_row_t *rr)
 {
+	zfs_dbgmsg("vdev_raidz_io_start_read()");
 	vdev_t *vd = zio->io_vd;
 
 	/*
@@ -1612,6 +1615,7 @@ vdev_raidz_io_start_read(zio_t *zio, raidz_row_t *rr)
 		if (rc->rc_size == 0)
 			continue;
 		vdev_t *cvd = vd->vdev_child[rc->rc_devidx];
+
 		if (!vdev_readable(cvd)) {
 			if (c >= rr->rr_firstdatacol)
 				rr->rr_missingdata++;
@@ -1622,6 +1626,7 @@ vdev_raidz_io_start_read(zio_t *zio, raidz_row_t *rr)
 			rc->rc_skipped = 1;
 			continue;
 		}
+
 		if (vdev_dtl_contains(cvd, DTL_MISSING, zio->io_txg, 1)) {
 			if (c >= rr->rr_firstdatacol)
 				rr->rr_missingdata++;
@@ -1631,6 +1636,8 @@ vdev_raidz_io_start_read(zio_t *zio, raidz_row_t *rr)
 			rc->rc_skipped = 1;
 			continue;
 		}
+
+		zfs_dbgmsg("Reading column %ld, devidx %ld", c, rc->rc_devidx);
 		if (c >= rr->rr_firstdatacol || rr->rr_missingdata > 0 ||
 		    (zio->io_flags & (ZIO_FLAG_SCRUB | ZIO_FLAG_RESILVER))) {
 			zio_nowait(zio_vdev_child_io(zio, NULL, cvd,
@@ -1661,10 +1668,11 @@ vdev_raidz_io_start_read(zio_t *zio, raidz_row_t *rr)
 static void
 vdev_raidz_io_start(zio_t *zio)
 {
-	zfs_dbgmsg("vdev_raidz_io_start");
 	vdev_t *vd = zio->io_vd;
 	vdev_t *tvd = vd->vdev_top;
 	vdev_raidz_t *vdrz = vd->vdev_tsd;
+	zfs_dbgmsg("vdev_raidz_io_start, logical width %ld, n parity %ld", vdrz->vd_logical_width, vdrz->vd_nparity);
+
 
 	zfs_dbgmsg("allocating raidz map");
 	raidz_map_t *rm = vdev_raidz_map_alloc(zio, tvd->vdev_ashift,

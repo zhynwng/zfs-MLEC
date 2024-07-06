@@ -878,32 +878,6 @@ dsl_scan(dsl_pool_t *dp, pool_scan_func_t func)
 	    dsl_scan_setup_sync, &func, 0, ZFS_SPACE_CHECK_EXTRA_RESERVED));
 }
 
-int
-dsl_easy_scan(dsl_pool_t *dp, pool_scan_func_t func)
-{
-	spa_t *spa = dp->dp_spa;
-	int error;
- 
-	/*
-	 * Purge all vdev caches and probe all devices.  We do this here
-	 * rather than in sync context because this requires a writer lock
-	 * on the spa_config lock, which we can't do from sync context.  The
-	 * spa_scrub_reopen flag indicates that vdev_open() should not
-	 * attempt to start another scrub.
-	 */
-	spa_vdev_state_enter(spa, SCL_NONE);
-	spa->spa_scrub_reopen = B_TRUE;
-	error = vdev_reopen(spa->spa_root_vdev);
-	spa->spa_scrub_reopen = B_FALSE;
-	(void) spa_vdev_state_exit(spa, NULL, 0);
-
-	if (error != 0)
-		return error;
-	
-	return (dsl_sync_task(spa_name(spa), dsl_scan_setup_check,
-	    dsl_scan_setup_sync, &func, 0, ZFS_SPACE_CHECK_EXTRA_RESERVED));
-}
-
 static void
 dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 {

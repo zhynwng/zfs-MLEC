@@ -8783,6 +8783,7 @@ retry_lookup:
 		flagbits['A'] = ZOR_FLAG_ALL_TYPES;
 
 		if (argc > 0 && dump_opt['d']) {
+			printf("Dump option [d]");
 			zopt_object_args = argc;
 			zopt_object_ranges = calloc(zopt_object_args,
 			    sizeof (zopt_object_range_t));

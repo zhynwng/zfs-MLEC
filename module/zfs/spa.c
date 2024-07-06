@@ -8087,17 +8087,6 @@ spa_scan(spa_t *spa, pool_scan_func_t func)
 	return (dsl_scan(spa->spa_dsl_pool, func));
 }
 
-int 
-spa_easy_scan(spa_t *spa, pool_scan_func_t func)
-{
-	ASSERT(spa_config_held(spa, SCL_ALL, RW_WRITER) == 0);
-	
-	if (func >= POOL_SCAN_FUNCS || func == POOL_SCAN_NONE)
-		return (SET_ERROR(ENOTSUP));
-
-	return (dsl_easy_scan(spa->spa_dsl_pool, func));
-}
-
 /*
  * ==========================================================================
  * SPA async task processing

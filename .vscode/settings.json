@@ -1,6 +1,21 @@
 {
     "files.associations": {
         "zfs_ioctl.h": "c",
-        "metaslab_impl.h": "c"
+        "metaslab_impl.h": "c",
+        "*.tcc": "c",
+        "cmath": "c",
+        "cstdlib": "c",
+        "cwchar": "c",
+        "type_traits": "c",
+        "limits": "c",
+        "typeinfo": "c",
+        "cctype": "c",
+        "cfloat": "c",
+        "climits": "c",
+        "cstdarg": "c",
+        "cstdio": "c",
+        "cinttypes": "c",
+        "cstdbool": "c",
+        "cstdint": "c"
     }
 }

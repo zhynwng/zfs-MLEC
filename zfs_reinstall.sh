@@ -45,6 +45,6 @@ done
 sudo zpool create pool raidz /media/ramdisk1/disk.img /media/ramdisk2/disk.img /media/ramdisk3/disk.img
 sudo zfs mount
 sudo chown -R aaronmao:aaronmao /pool
-dd if=/dev/urandom of=/pool/newfile bs=1M count=1
+dd if=/dev/urandom of=/pool/newfile bs=2M count=1
 
 printf "=======\nAll commands ran successfully\n=======" 

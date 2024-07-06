@@ -121,6 +121,7 @@ zfs_ioctl_fd(int fd, unsigned long request, zfs_cmd_t *zc)
 	ret = zcmd_ioctl_compat(fd, request, zc, cflag);
 
 	if (ret == 0 && oldsize < zc->zc_nvlist_dst_size) {
+		printf("Wrong size!");
 		ret = -1;
 		errno = ENOMEM;
 	}

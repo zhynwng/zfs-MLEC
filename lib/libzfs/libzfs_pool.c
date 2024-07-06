@@ -2567,13 +2567,17 @@ zpool_easy_scan(zpool_handle_t *zhp, pool_scan_func_t func, pool_scrub_cmd_t cmd
 	zc.zc_cookie = func;
 	zc.zc_flags = cmd;
 
-	if (zfs_ioctl(hdl, ZFS_IOC_POOL_EASY_SCAN, &zc) == 0)
-		return (0);
+	errno = 0;
+	printf("Calling zfs_ioctl with cmd %d\n", ZFS_IOC_POOL_EASY_SCAN);
+	errno = zfs_ioctl(hdl, ZFS_IOC_POOL_EASY_SCAN, &zc);
 
-	if (errno != 0) {
-		printf( "easy scrub detect disk failures for %s\n", zc.zc_name);
+	printf("error no %d\n", errno);
+
+	if (errno) {
+		printf("easy scrub detect disk failures for %s\n", zc.zc_name);
 	}
-	return 1;
+
+	return 0;
 	/*
 	char msg[1024];
 	int err;
