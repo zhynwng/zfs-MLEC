@@ -7379,14 +7379,15 @@ zfs_ioc_pool_easy_scan(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		return 1;
 	}
 
-	int16_t child_status[top_vdev->vdev_children];
+	int64_t child_status[top_vdev->vdev_children];
 
 	for (int i = 0; i < top_vdev->vdev_children; i++) {
 		child_status[i] = vdev_open(top_vdev->vdev_child[i]);
 		zfs_dbgmsg("child status %d is %d", i, child_status[i]);
 	}
 
-	nvlist_add_int16_array(outnvl, "children_status", child_status, top_vdev->vdev_children);
+	nvlist_add_int64_array(outnvl, "children_status", child_status, top_vdev->vdev_children);
+	nvlist_add_int64(outnvl, "children", top_vdev->vdev_children);
 
 	spa_close(spa, FTAG);
 

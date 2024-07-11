@@ -2567,7 +2567,7 @@ zpool_easy_scan(zpool_handle_t *zhp)
 
 	// Set output size
 	// TODO: fix this excessive memory allocation
-	zc.zc_nvlist_dst_size = 56;
+	zc.zc_nvlist_dst_size = 100;
 	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
 
 	errno = 0;
@@ -2576,27 +2576,40 @@ zpool_easy_scan(zpool_handle_t *zhp)
 	printf("Error no %d\n", errno);
 	// Read the nvlist
 
-	// nvlist_t *out;
-	// nvlist_alloc(out, NV_UNIQUE_NAME, 0);
+	nvlist_t *out;
+	nvlist_alloc(&out, NV_UNIQUE_NAME, 0);
 
-	// printf("unpacking");
-	// nvlist_unpack(zc.zc_nvlist_dst, zc.zc_nvlist_dst_size, &out, 0);
-	// printf("looking up");
-	// int child_status[3];
-	// int error = nvlist_lookup_int16_array(out, "children_status", child_status, 3);
-	// if (error) {
-	// 	printf("Error while looking up out nvlist, error %d\n", error);
-	// }
+	int error = 0;
+	error = nvlist_unpack((char *)zc.zc_nvlist_dst, zc.zc_nvlist_dst_size, &out, 0);
+	if (error) {
+		printf("Error unpacking\n");
+	}
 
-	// for (int i = 0; i < 3; i++) {
-	// 	printf(child_status[i] + ", ");
-	// }
+	int64_t child_status[3];
+	uint_t actual_len;
+
+	int64_t num_children;
+	nvlist_lookup_int64(out, "children", &num_children);
+	printf("Num children %d\n", num_children);
+
+	error = nvlist_lookup_int64_array(out, "children_status", &child_status, &actual_len);
+	// error = nvlist_lookup_int16_array(out, "children_status", child_status, 3);
+	if (error) {
+		printf("Error while looking up out nvlist, error %d\n", error);
+	} else {
+		printf("Got %d elems\n", actual_len);
+	}
+
+	for (int i = 0; i < 3; i++) {
+		printf("%ld ", child_status[i]);
+	}
+	printf("\n");
 
 	if (errno) {
 		printf("easy scrub detect disk failures for %s\n", zc.zc_name);
 	}
 
-	// nvlist_free(out);
+	nvlist_free(out);
 
 	return 0;
 }
