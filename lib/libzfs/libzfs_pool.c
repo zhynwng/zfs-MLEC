@@ -2555,6 +2555,37 @@ zpool_scan(zpool_handle_t *zhp, pool_scan_func_t func, pool_scrub_cmd_t cmd)
 	}
 }
 
+int
+zpool_get_all_dnode(zpool_handle_t *zhp) {
+	zfs_cmd_t zc;
+	libzfs_handle_t *hdl = zhp->zpool_hdl;
+
+	// Copy the zc name
+	(void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
+	
+	// Set output size
+	// TODO: fix this excessive memory allocation
+	zc.zc_nvlist_dst_size = 200;
+	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
+
+	errno = 0;
+	errno = zfs_ioctl(hdl, ZFS_IOC_POOL_ALL_DNODE, &zc);
+
+	printf("Error no %d\n", errno);
+	// Read the nvlist
+
+	nvlist_t *out;
+	nvlist_alloc(&out, NV_UNIQUE_NAME, 0);
+
+	int error = 0;
+	error = nvlist_unpack((char *)zc.zc_nvlist_dst, zc.zc_nvlist_dst_size, &out, 0);
+	if (error) {
+		printf("Error unpacking\n");
+	}
+
+	return 0;
+}
+
 /* Easy Zpool scan for easy scrub. */
 int
 zpool_easy_scan(zpool_handle_t *zhp)

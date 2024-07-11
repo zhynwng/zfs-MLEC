@@ -107,6 +107,7 @@ static int zpool_do_split(int, char **);
 static int zpool_do_initialize(int, char **);
 static int zpool_do_scrub(int, char **);
 static int zpool_do_easy_scrub(int, char **);
+static int zpool_do_get_all_dnode(int, char **);
 static int zpool_do_resilver(int, char **);
 static int zpool_do_trim(int, char **);
 
@@ -311,6 +312,7 @@ static zpool_command_t command_table[] = {
 	{ "resilver",	zpool_do_resilver,	HELP_RESILVER		},
 	{ "scrub",	zpool_do_scrub,		HELP_SCRUB		},
 	{ "easyscrub", zpool_do_easy_scrub, HELP_EASYSCRUB},
+	{ "getalldnode", zpool_do_get_all_dnode, HELP_EASYSCRUB},
 	{ "trim",	zpool_do_trim,		HELP_TRIM		},
 	{ NULL },
 	{ "import",	zpool_do_import,	HELP_IMPORT		},
@@ -7293,6 +7295,12 @@ easy_scrub_callback(zpool_handle_t *zhp, void *data)
 	return zpool_easy_scan(zhp);
 }
 
+static int 
+get_all_dnode_callback(zpool_handle_t *zhp, void *data) 
+{
+	return zpool_get_all_dnode(zhp);
+}
+
 static int
 wait_callback(zpool_handle_t *zhp, void *data)
 {
@@ -7368,6 +7376,23 @@ zpool_do_scrub(int argc, char **argv)
 		    wait_callback, &act);
 	}
 
+	return (error);
+}
+
+int
+zpool_do_get_all_dnode(int argc, char **argv) {
+	scrub_cbdata_t cb;
+	int error;
+
+	cb.cb_type = POOL_SCAN_SCRUB;
+	cb.cb_scrub_cmd = POOL_SCRUB_NORMAL;
+	
+	argc -= optind;
+	argv += optind;
+
+	error = for_each_pool(argc, argv, B_TRUE, NULL, B_FALSE,
+	    get_all_dnode_callback, &cb);
+	
 	return (error);
 }
 

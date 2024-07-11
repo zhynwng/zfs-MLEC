@@ -7362,6 +7362,49 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 }
 
 static int
+zfs_ioc_pool_all_dnode(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
+{
+	zfs_dbgmsg("zfs_ioc_pool_easy_scan called");
+	spa_t *spa;
+
+	if (spa_open(poolname, &spa, FTAG)) {
+		zfs_dbgmsg("spa cannot be opened");
+		return 2;
+	}
+
+	vdev_t *top_vdev = vdev_lookup_top(spa, 0);
+
+	// Check how many children it has
+	if (top_vdev->vdev_children == 0) {
+		return 1;
+	}
+
+	int64_t child_status[top_vdev->vdev_children];
+
+	for (int i = 0; i < top_vdev->vdev_children; i++) {
+		child_status[i] = vdev_open(top_vdev->vdev_child[i]);
+		zfs_dbgmsg("child status %d is %d", i, child_status[i]);
+	}
+
+	nvlist_add_int64_array(outnvl, "children_status", child_status, top_vdev->vdev_children);
+	nvlist_add_int64(outnvl, "children", top_vdev->vdev_children);
+
+	spa_close(spa, FTAG);
+
+	return 0;
+}
+
+// Always return 0
+static int
+zfs_pool_all_dnode_sec_policy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
+{
+	return 0;
+}
+
+static const zfs_ioc_key_t zfs_keys_all_dnode[] = {
+};
+
+static int
 zfs_ioc_pool_easy_scan(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
 	zfs_dbgmsg("zfs_ioc_pool_easy_scan called");
@@ -7528,6 +7571,9 @@ static void
 zfs_ioctl_init(void)
 {
 	// MLEC stuff
+	zfs_ioctl_register("all-dnode", ZFS_IOC_POOL_ALL_DNODE,
+						zfs_ioc_pool_all_dnode, zfs_pool_all_dnode_sec_policy, NO_NAME,
+						POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_all_dnode, ARRAY_SIZE(zfs_keys_all_dnode));
 	zfs_ioctl_register("easy-scrub", ZFS_IOC_POOL_EASY_SCAN,
 						zfs_ioc_pool_easy_scan, zfs_pool_easy_scan_sec_policy , NO_NAME,
 					   POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_easy_scan, ARRAY_SIZE(zfs_keys_easy_scan));

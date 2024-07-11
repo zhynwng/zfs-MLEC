@@ -1653,3 +1653,10 @@ lzc_mlec_test(const char *pool, const nvlist_t *input)
 	printf("lzc_test() called\n");
 	return (lzc_ioctl(ZFS_MLEC_TEST, pool, input, NULL));
 }
+
+/**
+ * MLEC get all dnode
+ */
+int lzc_mlec_get_all_dnode(const char *pool, const nvlist_t *input, const nvlist_t **output) {
+	
+}
