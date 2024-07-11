@@ -2567,7 +2567,7 @@ zpool_easy_scan(zpool_handle_t *zhp)
 
 	// Set output size
 	// TODO: fix this excessive memory allocation
-	zc.zc_nvlist_dst_size = 100;
+	zc.zc_nvlist_dst_size = 200;
 	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
 
 	errno = 0;
