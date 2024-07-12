@@ -7362,6 +7362,137 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 }
 
 static int
+mlec_open_objset(const char *path, void *tag, objset_t **osp)
+{
+	
+	int err;
+	uint64_t sa_attrs = 0;
+	uint64_t version = 0;
+	/*
+	 * We can't own an objset if it's redacted.  Therefore, we do this
+	 * dance: hold the objset, then acquire a long hold on its dataset, then
+	 * release the pool (which is held as part of holding the objset).
+	 */
+	err = dmu_objset_hold(path, tag, osp);
+	if (err != 0) {
+		zfs_dbgmsg("failed to hold dataset %s", path);
+		return (err);
+	}
+
+	dsl_dataset_long_hold(dmu_objset_ds(*osp), tag);
+	dsl_pool_rele(dmu_objset_pool(*osp), tag);
+
+	if (dmu_objset_type(*osp) == DMU_OST_ZFS && !(*osp)->os_encrypted) {
+		(void) zap_lookup(*osp, MASTER_NODE_OBJ, ZPL_VERSION_STR,
+		    8, 1, &version);
+		if (version >= ZPL_VERSION_SA) {
+			(void) zap_lookup(*osp, MASTER_NODE_OBJ, ZFS_SA_ATTRS,
+			    8, 1, &sa_attrs);
+		}
+	}
+
+	return (err);
+}
+
+static void
+mlec_close_objset(objset_t *os, void *tag)
+{
+	if (os->os_sa != NULL)
+		sa_tear_down(os);
+	dsl_dataset_long_rele(dmu_objset_ds(os), tag);
+	dsl_dataset_rele(dmu_objset_ds(os), tag);
+}
+
+static void
+mlec_dump_objset(objset_t *os)
+{
+	char *objset_types[DMU_OST_NUMTYPES] = {
+	"NONE", "META", "ZPL", "ZVOL", "OTHER", "ANY" };
+
+	dmu_objset_stats_t dds = { 0 };
+	uint64_t object, object_count;
+	uint64_t refdbytes, usedobjs, scratch;
+	char numbuf[32];
+	char blkbuf[BP_SPRINTF_LEN + 20];
+	char osname[ZFS_MAX_DATASET_NAME_LEN];
+	const char *type = "UNKNOWN";
+	boolean_t print_header;
+	unsigned i;
+	int error;
+	uint64_t total_slots_used = 0;
+	uint64_t max_slot_used = 0;
+	uint64_t dnode_slots;
+	uint64_t obj_start;
+	uint64_t obj_end;
+	uint64_t flags;
+
+	dsl_pool_config_enter(dmu_objset_pool(os), FTAG);
+	dmu_objset_fast_stat(os, &dds);
+	dsl_pool_config_exit(dmu_objset_pool(os), FTAG);
+
+	print_header = B_TRUE;
+
+	if (dds.dds_type < DMU_OST_NUMTYPES)
+		type = objset_types[dds.dds_type];
+
+	if (dds.dds_type == DMU_OST_META) {
+		return;
+	} 
+
+
+	dmu_objset_name(os, osname);
+
+	zfs_dbgmsg("Dataset %s [%s], ID %llu, cr_txg %llu, "
+	    "%s, %llu objects%s%s\n",
+	    osname, type, (u_longlong_t)dmu_objset_id(os),
+	    (u_longlong_t)dds.dds_creation_txg,
+	    numbuf, (u_longlong_t)usedobjs, blkbuf,
+	    (dds.dds_inconsistent) ? " (inconsistent)" : "");
+
+	if (BP_IS_HOLE(os->os_rootbp))
+		return;
+
+	// dump_object(os, 0, &print_header, NULL, 0);
+	// object_count = 0;
+	// if (DMU_USERUSED_DNODE(os) != NULL &&
+	//     DMU_USERUSED_DNODE(os)->dn_type != 0) {
+	// 	dump_object(os, DMU_USERUSED_OBJECT, &print_header,
+	// 	    NULL, 0);
+	// 	dump_object(os, DMU_GROUPUSED_OBJECT, &print_header,
+	// 	    NULL, 0);
+	// }
+
+	// if (DMU_PROJECTUSED_DNODE(os) != NULL &&
+	//     DMU_PROJECTUSED_DNODE(os)->dn_type != 0)
+	// 	dump_object(os, DMU_PROJECTUSED_OBJECT,
+	// 	    &print_header, NULL, 0);
+
+	object = 0;
+	while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
+		zfs_dbgmsg("dnode %ld %ld", dmu_objset_id(os), object);
+	}
+
+	return;
+}
+
+/*ARGSUSED*/
+static int
+mlec_dump_one_objset(const char *dsname, void *arg)
+{
+	int error;
+	objset_t *os;
+	spa_feature_t f;
+
+	error = mlec_open_objset(dsname, FTAG, &os);
+	if (error != 0)
+		return (0);
+
+	mlec_dump_objset(os);
+	mlec_close_objset(os, FTAG);
+	return (0);
+}
+
+static int
 zfs_ioc_pool_all_dnode(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
 	zfs_dbgmsg("zfs_ioc_pool_easy_scan called");
@@ -7372,22 +7503,8 @@ zfs_ioc_pool_all_dnode(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		return 2;
 	}
 
-	vdev_t *top_vdev = vdev_lookup_top(spa, 0);
-
-	// Check how many children it has
-	if (top_vdev->vdev_children == 0) {
-		return 1;
-	}
-
-	int64_t child_status[top_vdev->vdev_children];
-
-	for (int i = 0; i < top_vdev->vdev_children; i++) {
-		child_status[i] = vdev_open(top_vdev->vdev_child[i]);
-		zfs_dbgmsg("child status %d is %d", i, child_status[i]);
-	}
-
-	nvlist_add_int64_array(outnvl, "children_status", child_status, top_vdev->vdev_children);
-	nvlist_add_int64(outnvl, "children", top_vdev->vdev_children);
+	dmu_objset_find(spa_name(spa), mlec_dump_one_objset,
+		    NULL, DS_FIND_CHILDREN);
 
 	spa_close(spa, FTAG);
 
