@@ -3407,7 +3407,7 @@ dump_object(objset_t *os, uint64_t object, int verbosity,
 			dn = DB_DNODE((dmu_buf_impl_t *)db);
 		}
 
-		printf("dump_object() <objset_id:dnode_id> <%ld:%ld>\n", dmu_objset_id(os), dn->dn_object);
+		// printf("dump_object() <objset_id:dnode_id> <%ld:%ld>\n", dmu_objset_id(os), dn->dn_object);
 	}
 
 	if (*print_header) {

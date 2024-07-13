@@ -7402,22 +7402,12 @@ mlec_close_objset(objset_t *os, void *tag)
 }
 
 static void
-mlec_dump_objset(objset_t *os)
+mlec_dump_objset(objset_t *os, nvlist_t *out)
 {
-	char *objset_types[DMU_OST_NUMTYPES] = {
-	"NONE", "META", "ZPL", "ZVOL", "OTHER", "ANY" };
-
+	zfs_dbgmsg("mlec_dump_objset called");
 	uint64_t object;
 	char osname[ZFS_MAX_DATASET_NAME_LEN];
-	const char *type = "UNKNOWN";
 	int error;
-
-	// if (dds.dds_type < DMU_OST_NUMTYPES)
-	// 	type = objset_types[dds.dds_type];
-
-	// if (dds.dds_type == DMU_OST_META) {
-	// 	return;
-	// } 
 
 	dmu_objset_name(os, osname);
 	zfs_dbgmsg("Object set name %s", osname);
@@ -7425,9 +7415,63 @@ mlec_dump_objset(objset_t *os)
 	if (BP_IS_HOLE(os->os_rootbp))
 		return;
 
+	int num_object = 0;
 	object = 0;
 	while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
-		zfs_dbgmsg("dnode %ld %ld", dmu_objset_id(os), object);
+		// Check whether dnode is a plain file
+		dnode_t *dn;
+		dnode_hold(os, object, FTAG, &dn);
+		if (dn->dn_type == DMU_OT_PLAIN_FILE_CONTENTS) {
+			char path[MAXPATHLEN * 2];
+			zfs_obj_to_path(os, object, path, sizeof(path));
+			zfs_dbgmsg("dnode %ld:%ld, type %ld, path %s", dmu_objset_id(os), object, dn->dn_type, path);
+
+			// Set that into the list
+			int nv_error = 0;
+
+			nvlist_t *attributes;
+			nv_error = nvlist_alloc(&attributes, NV_UNIQUE_NAME, KM_SLEEP);
+			if (nv_error) {
+				zfs_dbgmsg("Error while allocating nvlist");
+				return;
+			}
+			nv_error = nvlist_add_int64(attributes, "objset", dmu_objset_id(os));
+			if (nv_error) {
+				zfs_dbgmsg("Error while putting objset into nvlist");
+				return;
+			}
+			nv_error = nvlist_add_int64(attributes, "object", object);
+			if (nv_error) {
+				zfs_dbgmsg("Error while putting object into nvlist");
+				return;
+			}
+			nv_error = nvlist_add_string(attributes, "path", path);
+			if (nv_error) {
+				zfs_dbgmsg("Error while putting path into nvlist");
+				return;
+			}
+
+			// Set that into the out nvlist
+			char index[5];
+			nv_error = sprintf(index, "%d", num_object);
+			if (nv_error) {
+				zfs_dbgmsg("Error while converting index to string");
+				return;
+			}
+			nv_error = nvlist_add_nvlist(out, index, attributes);
+			if (nv_error) {
+				zfs_dbgmsg("Error while putting attributes into output list");
+				return;
+			}
+			
+			if (nv_error) {
+				zfs_dbgmsg("Error while putting attributes into nvlist");
+				return;
+			}
+
+			num_object++;
+		}
+		dnode_rele(dn, FTAG);
 	}
 
 	return;
@@ -7440,11 +7484,12 @@ mlec_dump_one_objset(const char *dsname, void *arg)
 	int error;
 	objset_t *os;
 
+	nvlist_t *out = (nvlist_t *) arg;
 	error = mlec_open_objset(dsname, FTAG, &os);
 	if (error != 0)
 		return (0);
 
-	mlec_dump_objset(os);
+	mlec_dump_objset(os, out);
 	mlec_close_objset(os, FTAG);
 	return (0);
 }
@@ -7461,7 +7506,7 @@ zfs_ioc_pool_all_dnode(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	}
 
 	dmu_objset_find(spa_name(spa), mlec_dump_one_objset,
-		    NULL, DS_FIND_CHILDREN);
+		    outnvl, DS_FIND_CHILDREN);
 
 	spa_close(spa, FTAG);
 
@@ -7500,7 +7545,7 @@ zfs_ioc_pool_easy_scan(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 
 	for (int i = 0; i < top_vdev->vdev_children; i++) {
 		child_status[i] = vdev_open(top_vdev->vdev_child[i]);
-		zfs_dbgmsg("child status %d is %d", i, child_status[i]);
+		zfs_dbgmsg("child status %d is %lld", i, child_status[i]);
 	}
 
 	nvlist_add_int64_array(outnvl, "children_status", child_status, top_vdev->vdev_children);
@@ -7620,7 +7665,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	repair_zio->mlec_write_target = &blk;
 	repair_zio->mlec_write_col_idx = col_idx;
 
-	zfs_dbgmsg("abd opened and buffer copied, content is %s", abd_to_buf(repair_zio->io_abd));
+	zfs_dbgmsg("abd opened and buffer copied, content is %s", (char *) abd_to_buf(repair_zio->io_abd));
 
 	// 5. Call the zio pipeline
 	zio_nowait(repair_zio);
