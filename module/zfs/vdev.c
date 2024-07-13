@@ -3945,9 +3945,9 @@ vdev_fault(spa_t *spa, uint64_t guid, vdev_aux_t aux)
 	 * Faulted state takes precedence over degraded.
 	 */
 	vd->vdev_delayed_close = B_FALSE;
-	// vd->vdev_faulted = 1ULL;
-	// vd->vdev_degraded = 0ULL;
-	// vdev_set_state(vd, B_FALSE, VDEV_STATE_FAULTED, aux);
+	vd->vdev_faulted = 1ULL;
+	vd->vdev_degraded = 0ULL;
+	vdev_set_state(vd, B_FALSE, VDEV_STATE_FAULTED, aux);
 
 	/*
 	 * If this device has the only valid copy of the data, then
