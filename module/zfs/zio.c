@@ -5091,7 +5091,7 @@ zio_done(zio_t *zio)
 			 * until conditions improve (e.g. device comes online).
 			 */
 			zfs_dbgmsg("Suspending spa and zio");
-			zio_suspend(zio->io_spa, zio, ZIO_SUSPEND_IOERR);
+			// zio_suspend(zio->io_spa, zio, ZIO_SUSPEND_IOERR);
 		}
 		else
 		{

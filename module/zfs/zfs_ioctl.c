@@ -8339,6 +8339,8 @@ long zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 	strlcpy(saved_poolname, zc->zc_name, saved_poolname_len);
 	saved_poolname[strcspn(saved_poolname, "/@#")] = '\0';
 
+	zfs_dbgmsg("pool name copied");
+
 	if (vec->zvec_func != NULL)
 	{
 		nvlist_t *outnvl;
@@ -8364,11 +8366,15 @@ long zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 			}
 		}
 
+		zfs_dbgmsg("allow log good");
+
 		outnvl = fnvlist_alloc();
+		zfs_dbgmsg("out nvl allocation good");
 		cookie = spl_fstrans_mark();
 		error = vec->zvec_func(zc->zc_name, innvl, outnvl);
 		spl_fstrans_unmark(cookie);
 
+		zfs_dbgmsg("spl cookie good, error now %ld", error);
 		/*
 		 * Some commands can partially execute, modify state, and still
 		 * return an error.  In these cases, attempt to record what
@@ -8379,6 +8385,7 @@ long zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 			vec->zvec_allow_log &&
 			spa_open(zc->zc_name, &spa, FTAG) == 0)
 		{
+			zfs_dbgmsg("spa_open good");
 			if (!nvlist_empty(outnvl))
 			{
 				size_t out_size = fnvlist_size(outnvl);
@@ -8393,6 +8400,7 @@ long zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 									   ZPOOL_HIST_OUTPUT_NVL, outnvl);
 				}
 			}
+			zfs_dbgmsg("log nv good");
 			if (error != 0)
 			{
 				fnvlist_add_int64(lognv, ZPOOL_HIST_ERRNO,
@@ -8401,7 +8409,9 @@ long zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 			fnvlist_add_int64(lognv, ZPOOL_HIST_ELAPSED_NS,
 							  gethrtime() - start_time);
 			(void)spa_history_log_nvl(spa, lognv);
+			zfs_dbgmsg("spa history log god");
 			spa_close(spa, FTAG);
+			zfs_dbgmsg("spa close good");
 		}
 		fnvlist_free(lognv);
 
@@ -8441,6 +8451,7 @@ out:
 	if (saved_poolname != NULL)
 		kmem_free(saved_poolname, saved_poolname_len);
 
+	zfs_dbgmsg("Returning good");
 	return (error);
 }
 

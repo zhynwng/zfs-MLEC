@@ -3895,6 +3895,7 @@ vdev_psize_to_asize(vdev_t *vd, uint64_t psize)
 int
 vdev_fault(spa_t *spa, uint64_t guid, vdev_aux_t aux)
 {
+	zfs_dbgmsg("vdev_fault called");
 	vdev_t *vd, *tvd;
 
 	spa_vdev_state_enter(spa, SCL_NONE);
@@ -3944,17 +3945,17 @@ vdev_fault(spa_t *spa, uint64_t guid, vdev_aux_t aux)
 	 * Faulted state takes precedence over degraded.
 	 */
 	vd->vdev_delayed_close = B_FALSE;
-	vd->vdev_faulted = 1ULL;
-	vd->vdev_degraded = 0ULL;
-	vdev_set_state(vd, B_FALSE, VDEV_STATE_FAULTED, aux);
+	// vd->vdev_faulted = 1ULL;
+	// vd->vdev_degraded = 0ULL;
+	// vdev_set_state(vd, B_FALSE, VDEV_STATE_FAULTED, aux);
 
 	/*
 	 * If this device has the only valid copy of the data, then
 	 * back off and simply mark the vdev as degraded instead.
 	 */
 	if (!tvd->vdev_islog && vd->vdev_aux == NULL && vdev_dtl_required(vd)) {
-		vd->vdev_degraded = 1ULL;
-		vd->vdev_faulted = 0ULL;
+		// vd->vdev_degraded = 1ULL;
+		// vd->vdev_faulted = 0ULL;
 
 		/*
 		 * If we reopen the device and it's not dead, only then do we
@@ -5111,6 +5112,7 @@ vdev_propagate_state(vdev_t *vd)
 void
 vdev_set_state(vdev_t *vd, boolean_t isopen, vdev_state_t state, vdev_aux_t aux)
 {
+	zfs_dbgmsg("vdev_set_state called weith state %ld", state);
 	uint64_t save_state;
 	spa_t *spa = vd->vdev_spa;
 
