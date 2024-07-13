@@ -2616,12 +2616,12 @@ zpool_easy_scan(zpool_handle_t *zhp)
 		printf("Error unpacking\n");
 	}
 
-	int64_t child_status[3];
+	int64_t *child_status;
 	uint_t actual_len;
 
 	int64_t num_children;
 	nvlist_lookup_int64(out, "children", &num_children);
-	printf("Num children %d\n", num_children);
+	printf("Num children %ld\n", num_children );
 
 	error = nvlist_lookup_int64_array(out, "children_status", &child_status, &actual_len);
 	// error = nvlist_lookup_int16_array(out, "children_status", child_status, 3);

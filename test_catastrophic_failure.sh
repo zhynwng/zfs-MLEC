@@ -29,6 +29,6 @@ for i in {1..6}; do
     cd /mnt/zfs && sudo dd if=/dev/random of=/mnt/zfs/test$i bs=40M count=10
 done
 
-sudo dd if=/dev/zero of=/media/ramdisk1/disk.img bs=4M count=20 2>/dev/null
-sudo dd if=/dev/zero of=/media/ramdisk2/disk.img bs=4M count=20 2>/dev/null
+sudo dd if=/dev/zero of=/media/ramdisk1/disk.img bs=4M count=20 oflag=seek_bytes seek=10485760  2>/dev/null
+sudo dd if=/dev/zero of=/media/ramdisk2/disk.img bs=4M count=20 oflag=seek_bytes seek=10485760  2>/dev/null
 

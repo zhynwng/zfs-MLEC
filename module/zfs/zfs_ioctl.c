@@ -7452,7 +7452,7 @@ mlec_dump_one_objset(const char *dsname, void *arg)
 static int
 zfs_ioc_pool_all_dnode(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
-	zfs_dbgmsg("zfs_ioc_pool_easy_scan called");
+	zfs_dbgmsg("zfs pool_all_dnode called");
 	spa_t *spa;
 
 	if (spa_open(poolname, &spa, FTAG)) {
