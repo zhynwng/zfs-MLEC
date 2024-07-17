@@ -9223,7 +9223,7 @@ spa_sync_rewrite_vdev_config(spa_t *spa, dmu_tx_t *tx)
 
 		if (error == 0)
 			break;
-		zio_suspend(spa, NULL, ZIO_SUSPEND_IOERR);
+		// zio_suspend(spa, NULL, ZIO_SUSPEND_IOERR);
 		zio_resume_wait(spa);
 	}
 }
