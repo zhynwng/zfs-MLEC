@@ -5147,6 +5147,7 @@ static int
 spa_open_common(const char *pool, spa_t **spapp, void *tag, nvlist_t *nvpolicy,
     nvlist_t **config)
 {
+	zfs_dbgmsg("spa_open_common called");
 	spa_t *spa;
 	spa_load_state_t state = SPA_LOAD_OPEN;
 	int error;
@@ -5165,12 +5166,15 @@ spa_open_common(const char *pool, spa_t **spapp, void *tag, nvlist_t *nvpolicy,
 		mutex_enter(&spa_namespace_lock);
 		locked = B_TRUE;
 	}
+	zfs_dbgmsg("spa namespace lock acquired");
 
 	if ((spa = spa_lookup(pool)) == NULL) {
 		if (locked)
 			mutex_exit(&spa_namespace_lock);
 		return (SET_ERROR(ENOENT));
 	}
+
+	zfs_dbgmsg("spa_lookup good");
 
 	if (spa->spa_state == POOL_STATE_UNINITIALIZED) {
 		zpool_load_policy_t policy;

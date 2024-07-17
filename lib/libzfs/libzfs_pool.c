@@ -2565,7 +2565,7 @@ zpool_get_all_dnode(zpool_handle_t *zhp) {
 	
 	// Set output size
 	// TODO: fix this excessive memory allocation
-	zc.zc_nvlist_dst_size = 200;
+	zc.zc_nvlist_dst_size = 600;
 	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
 
 	errno = 0;
@@ -2581,6 +2581,17 @@ zpool_get_all_dnode(zpool_handle_t *zhp) {
 	error = nvlist_unpack((char *)zc.zc_nvlist_dst, zc.zc_nvlist_dst_size, &out, 0);
 	if (error) {
 		printf("Error unpacking\n");
+	}
+
+	size_t size;
+	nvlist_size(out, &size, NV_ENCODE_NATIVE);
+	printf("Out list size %ld\n", size);
+
+	nvpair_t *nvp;
+	for (nvp = nvlist_next_nvpair(out, nvp); nvp != NULL; nvp = nvlist_next_nvpair(out, nvp)) {
+		char *name = nvpair_name(nvp);
+		
+		printf("Datanode %ld\n", name);
 	}
 
 	return 0;
