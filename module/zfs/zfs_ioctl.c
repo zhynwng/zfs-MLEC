@@ -221,6 +221,9 @@
 #include <sys/lua/lauxlib.h>
 #include <sys/zfs_ioctl_impl.h>
 
+// MLEC include
+#include <sys/vdev_raidz.h>
+
 kmutex_t zfsdev_state_lock;
 zfsdev_state_t *zfsdev_state_list;
 
@@ -7362,6 +7365,67 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 }
 
 static int
+zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
+{
+	zfs_dbgmsg("zfs pool_failed_chunks called");
+	spa_t *spa;
+
+	if (spa_open(poolname, &spa, FTAG)) {
+		zfs_dbgmsg("spa cannot be opened");
+		return 2;
+	}
+
+	// Get the vdev_top
+	vdev_t *top = vdev_lookup_top(spa, 0);
+	vdev_raidz_t *vrt = top->vdev_tsd;
+	zfs_dbgmsg("vdev raidz width %ld, parity %ld", vrt->vd_logical_width, vrt->vd_nparity);
+	zfs_dbgmsg("vdev ashift %ld, asize %ld", top->vdev_ashift, top->vdev_asize);
+	
+	// Get the number of chunks, and number of stripes
+	int innvl_err = 0;
+	uint64_t objset_id, object_id;
+	innvl_err += nvlist_lookup_uint64(innvl, "objset_id", &objset_id);
+	innvl_err += nvlist_lookup_uint64(innvl, "object_id", &object_id);
+	
+	dsl_dataset_t *dsl_dataset;
+	if (dsl_dataset_hold_obj(spa->spa_dsl_pool, objset_id, FTAG, &dsl_dataset))
+	{
+		zfs_dbgmsg("dsl_dataset open failed");
+		spa_close(spa, FTAG);
+		return 1;
+	}
+
+	// 4. Find the dnode pointing to the FILE that we want to repair
+	dnode_t *dnode_repair;
+	if (dnode_hold(dsl_dataset->ds_objset, object_id, FTAG, &dnode_repair))
+	{
+		zfs_dbgmsg("dnode_t open failed");
+		dsl_dataset_rele(dsl_dataset, FTAG);
+		spa_close(spa, FTAG);
+		return 1;
+	}
+
+	dnode_rele(dnode_repair, FTAG);
+	dsl_dataset_rele(dsl_dataset, FTAG);
+	spa_close(spa, FTAG);
+
+	return 0;
+}
+
+// Always return 0
+static int
+zfs_pool_failed_chunks_sec_policy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
+{
+	return 0;
+}
+
+static const zfs_ioc_key_t zfs_keys_failed_chunks[] = {
+	{"objset_id", DATA_TYPE_UINT64, 0},
+	{"object_id", DATA_TYPE_UINT64, 0}
+};
+
+
+static int
 mlec_open_objset(const char *path, void *tag, objset_t **osp, dsl_dataset_t **dsl_dataset)
 {
 	
@@ -7696,6 +7760,9 @@ static void
 zfs_ioctl_init(void)
 {
 	// MLEC stuff
+	zfs_ioctl_register("failed-chunks", ZFS_IOC_POOL_FAILED_CHUNKS,
+						zfs_ioctl_failed_chunks, zfs_pool_failed_chunks_sec_policy, NO_NAME,
+						POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_failed_chunks, ARRAY_SIZE(zfs_keys_failed_chunks));
 	zfs_ioctl_register("all-dnode", ZFS_IOC_POOL_ALL_DNODE,
 						zfs_ioc_pool_all_dnode, zfs_pool_all_dnode_sec_policy, NO_NAME,
 						POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_all_dnode, ARRAY_SIZE(zfs_keys_all_dnode));
@@ -8316,8 +8383,10 @@ long zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 	{
 		zfs_dbgmsg("zfsdev_ioctl_common(): checking input nvlist");
 		error = zfs_check_input_nvpairs(innvl, vec);
-		if (error != 0)
+		if (error != 0) {
+			zfs_dbgmsg("nvlist not good %ld!", error);
 			goto out;
+		}
 	}
 
 	zfs_dbgmsg("zfsdev_ioctl_common(): nvlist good");

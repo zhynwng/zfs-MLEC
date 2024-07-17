@@ -108,6 +108,7 @@ static int zpool_do_initialize(int, char **);
 static int zpool_do_scrub(int, char **);
 static int zpool_do_easy_scrub(int, char **);
 static int zpool_do_get_all_dnode(int, char **);
+static int zpool_do_get_failed_chunks(int, char**);
 static int zpool_do_resilver(int, char **);
 static int zpool_do_trim(int, char **);
 
@@ -272,6 +273,11 @@ typedef struct zpool_command {
 	zpool_help_t	usage;
 } zpool_command_t;
 
+typedef struct failed_chunks_cbdata {
+	int64_t objset_id;
+	int64_t object_id;
+} failed_chunks_cbdata_t;
+
 /*
  * Master command table.  Each ZFS command has a name, associated function, and
  * usage message.  The usage messages need to be internationalized, so we have
@@ -313,6 +319,7 @@ static zpool_command_t command_table[] = {
 	{ "scrub",	zpool_do_scrub,		HELP_SCRUB		},
 	{ "easyscrub", zpool_do_easy_scrub, HELP_EASYSCRUB},
 	{ "getalldnode", zpool_do_get_all_dnode, HELP_EASYSCRUB},
+	{ "getfailedchunks", zpool_do_get_failed_chunks, HELP_EASYSCRUB},
 	{ "trim",	zpool_do_trim,		HELP_TRIM		},
 	{ NULL },
 	{ "import",	zpool_do_import,	HELP_IMPORT		},
@@ -7302,6 +7309,13 @@ get_all_dnode_callback(zpool_handle_t *zhp, void *data)
 }
 
 static int
+get_failed_chunks_callback(zpool_handle_t *zhp, void *data) 
+{
+	failed_chunks_cbdata_t *tup = data;
+	return zpool_get_failed_chunks(zhp, tup->objset_id, tup->object_id);
+}
+
+static int
 wait_callback(zpool_handle_t *zhp, void *data)
 {
 	zpool_wait_activity_t *act = data;
@@ -7392,6 +7406,26 @@ zpool_do_get_all_dnode(int argc, char **argv) {
 
 	error = for_each_pool(argc, argv, B_TRUE, NULL, B_FALSE,
 	    get_all_dnode_callback, &cb);
+	
+	return (error);
+}
+
+int
+zpool_do_get_failed_chunks(int argc, char **argv) {
+	int error;
+
+	failed_chunks_cbdata_t cb;
+	cb.objset_id = atoi(argv[2]);
+	cb.object_id = atoi(argv[3]);
+
+	// Hijack, so that for each does not recognize the two following arguments
+	argc -= 2;
+
+	argc -= optind;
+	argv += optind;
+
+	error = for_each_pool(argc, argv, B_TRUE, NULL, B_FALSE,
+	    get_failed_chunks_callback, &cb);
 	
 	return (error);
 }

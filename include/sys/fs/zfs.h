@@ -1415,6 +1415,7 @@ extern "C"
 		ZFS_IOC_WAIT_FS,					 /* 0x5a54 */
 		ZFS_IOC_POOL_EASY_SCAN,				 /* 0x5a55 */
 		ZFS_IOC_POOL_ALL_DNODE,				 /* 0x5a56 */
+		ZFS_IOC_POOL_FAILED_CHUNKS,          /* 0x5a57 */
 
 		/*
 		 * Per-platform (Optional) - 8/128 numbers reserved.

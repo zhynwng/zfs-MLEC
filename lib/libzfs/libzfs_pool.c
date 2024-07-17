@@ -2556,6 +2556,60 @@ zpool_scan(zpool_handle_t *zhp, pool_scan_func_t func, pool_scrub_cmd_t cmd)
 }
 
 int
+zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_id) {
+	zfs_cmd_t zc;
+	libzfs_handle_t *hdl = zhp->zpool_hdl;
+
+	// Copy the zc name
+	(void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
+	
+	// Configure input
+	nvlist_t *input;
+	nvlist_alloc(&input, NV_UNIQUE_NAME, 0);
+	nvlist_add_uint64(input, "objset_id", objset_id);
+	nvlist_add_uint64(input, "object_id", object_id);
+
+	printf("=====\n");
+	size_t nvsz;
+	int err = nvlist_size(input, &nvsz, NV_ENCODE_NATIVE);
+	assert(err == 0);
+
+	char *nvbuf = malloc(nvsz);
+
+	err = nvlist_pack(input, &nvbuf, &nvsz, NV_ENCODE_NATIVE, 0);
+	assert(err == 0);
+
+	zc.zc_nvlist_src_size = nvsz;
+	zc.zc_nvlist_src = (uintptr_t)nvbuf;
+
+	// Set output size
+	// TODO: fix this excessive memory allocation
+	zc.zc_nvlist_dst_size = 6000;
+	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
+
+	errno = 0;
+	errno = zfs_ioctl(hdl, ZFS_IOC_POOL_FAILED_CHUNKS, &zc);
+
+	printf("Error no %d\n", errno);
+	// Read the nvlist
+
+	nvlist_t *out;
+	nvlist_alloc(&out, NV_UNIQUE_NAME, 0);
+
+	int error = 0;
+	error = nvlist_unpack((char *)zc.zc_nvlist_dst, zc.zc_nvlist_dst_size, &out, 0);
+	if (error) {
+		printf("Error unpacking\n");
+	}
+
+
+	nvlist_free(input);
+	nvlist_free(out);
+
+	return 0;
+}
+
+int
 zpool_get_all_dnode(zpool_handle_t *zhp) {
 	zfs_cmd_t zc;
 	libzfs_handle_t *hdl = zhp->zpool_hdl;
