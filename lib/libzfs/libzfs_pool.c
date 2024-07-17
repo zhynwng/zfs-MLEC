@@ -2565,7 +2565,7 @@ zpool_get_all_dnode(zpool_handle_t *zhp) {
 	
 	// Set output size
 	// TODO: fix this excessive memory allocation
-	zc.zc_nvlist_dst_size = 600;
+	zc.zc_nvlist_dst_size = 6000;
 	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
 
 	errno = 0;
@@ -2583,16 +2583,26 @@ zpool_get_all_dnode(zpool_handle_t *zhp) {
 		printf("Error unpacking\n");
 	}
 
-	size_t size;
-	nvlist_size(out, &size, NV_ENCODE_NATIVE);
-	printf("Out list size %ld\n", size);
-
 	nvpair_t *nvp;
-	for (nvp = nvlist_next_nvpair(out, nvp); nvp != NULL; nvp = nvlist_next_nvpair(out, nvp)) {
-		char *name = nvpair_name(nvp);
+	while ((nvp = nvlist_next_nvpair(out, nvp)) != NULL) {
+		printf("Datanode name %s\n", nvpair_name(nvp));
+		// Get the nested nvlist attributes
+		nvlist_t *temp_attributes;
+		nvlist_alloc(&temp_attributes, NV_UNIQUE_NAME, 0);
+		nvpair_value_nvlist(nvp, &temp_attributes);
 		
-		printf("Datanode %ld\n", name);
+		int64_t objset, object, type;
+		char path[1024];
+		nvlist_lookup_int64(temp_attributes, "objset", &objset);
+		nvlist_lookup_int64(temp_attributes, "object", &object);
+		nvlist_lookup_int64(temp_attributes, "type", &type);
+		nvlist_lookup_string(temp_attributes, "path", &path);
+		printf("dnode %ld:%ld, type %ld, path %s\n", objset, object, type, path);
+
+		nvlist_free(temp_attributes);
 	}
+
+	nvlist_free(out);
 
 	return 0;
 }

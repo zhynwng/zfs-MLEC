@@ -7362,12 +7362,11 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 }
 
 static int
-mlec_open_objset(const char *path, void *tag, objset_t **osp)
+mlec_open_objset(const char *path, void *tag, objset_t **osp, dsl_dataset_t **dsl_dataset)
 {
 	
 	int err;
-	uint64_t sa_attrs = 0;
-	uint64_t version = 0;
+
 	/*
 	 * We can't own an objset if it's redacted.  Therefore, we do this
 	 * dance: hold the objset, then acquire a long hold on its dataset, then
@@ -7379,26 +7378,20 @@ mlec_open_objset(const char *path, void *tag, objset_t **osp)
 		return (err);
 	}
 
-	dsl_dataset_long_hold(dmu_objset_ds(*osp), tag);
-	dsl_pool_rele(dmu_objset_pool(*osp), tag);
+	// dsl_dataset_long_hold(dmu_objset_ds(*osp), tag);
+	// dsl_pool_rele(dmu_objset_pool(*osp), tag);
 
-	// if (dmu_objset_type(*osp) == DMU_OST_ZFS && !(*osp)->os_encrypted) {
-	// 	(void) zap_lookup(*osp, MASTER_NODE_OBJ, ZPL_VERSION_STR,
-	// 	    8, 1, &version);
-	// 	if (version >= ZPL_VERSION_SA) {
-	// 		(void) zap_lookup(*osp, MASTER_NODE_OBJ, ZFS_SA_ATTRS,
-	// 		    8, 1, &sa_attrs);
-	// 	}
-	// }
+	err = dsl_dataset_hold(dmu_objset_pool(*osp), path, tag, dsl_dataset);
 
 	return (err);
 }
 
 static void
-mlec_close_objset(objset_t *os, void *tag)
+mlec_close_objset(objset_t *os, void *tag, dsl_dataset_t *dsl_dataset)
 {
-	dsl_dataset_long_rele(dmu_objset_ds(os), tag);
-	dsl_dataset_rele(dmu_objset_ds(os), tag);
+	// dsl_dataset_long_rele(dmu_objset_ds(os), tag);
+	dsl_dataset_rele(dsl_dataset, tag);
+	dmu_objset_rele(os, tag);
 }
 
 static void
@@ -7421,56 +7414,63 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 		// Check whether dnode is a plain file
 		dnode_t *dn;
 		dnode_hold(os, object, FTAG, &dn);
+		
 		if (dn->dn_type == DMU_OT_PLAIN_FILE_CONTENTS) {
-			char path[MAXPATHLEN * 2];
-			zfs_obj_to_path(os, object, path, sizeof(path));
+			char path[1024];
+			if (zfs_obj_to_path(os, object, path, sizeof(path))) {
+				zfs_dbgmsg("Error retrieving dnode path");
+			}
 			zfs_dbgmsg("dnode %ld:%ld, type %ld, path %s", dmu_objset_id(os), object, dn->dn_type, path);
 
 			// Set that into the list
 			int nv_error = 0;
 
 			nvlist_t *attributes;
-			nv_error = nvlist_alloc(&attributes, NV_UNIQUE_NAME, KM_SLEEP);
+			nv_error = nvlist_alloc(&attributes, NV_UNIQUE_NAME, 0);
 			if (nv_error) {
 				zfs_dbgmsg("Error while allocating nvlist");
+				dnode_rele(dn, FTAG);
 				return;
 			}
 			nv_error = nvlist_add_int64(attributes, "objset", dmu_objset_id(os));
 			if (nv_error) {
 				zfs_dbgmsg("Error while putting objset into nvlist");
+				dnode_rele(dn, FTAG);
 				return;
 			}
 			nv_error = nvlist_add_int64(attributes, "object", object);
 			if (nv_error) {
 				zfs_dbgmsg("Error while putting object into nvlist");
+				dnode_rele(dn, FTAG);
+				return;
+			}
+			nv_error = nvlist_add_int64(attributes, "type", dn->dn_type);
+			if (nv_error) {
+				zfs_dbgmsg("Error while putting type into nvlist");
+				dnode_rele(dn, FTAG);
 				return;
 			}
 			nv_error = nvlist_add_string(attributes, "path", path);
 			if (nv_error) {
 				zfs_dbgmsg("Error while putting path into nvlist");
+				dnode_rele(dn, FTAG);
 				return;
 			}
 
 			// Set that into the out nvlist
 			char index[5];
-			nv_error = sprintf(index, "%d", num_object);
-			if (nv_error) {
-				zfs_dbgmsg("Error while converting index to string");
-				return;
-			}
+			sprintf(index, "%ld", num_object);
+
 			nv_error = nvlist_add_nvlist(out, index, attributes);
 			if (nv_error) {
 				zfs_dbgmsg("Error while putting attributes into output list");
-				return;
-			}
-			
-			if (nv_error) {
-				zfs_dbgmsg("Error while putting attributes into nvlist");
+				dnode_rele(dn, FTAG);
 				return;
 			}
 
 			num_object++;
 		}
+		
 		dnode_rele(dn, FTAG);
 	}
 
@@ -7483,14 +7483,19 @@ mlec_dump_one_objset(const char *dsname, void *arg)
 {
 	int error;
 	objset_t *os;
+	dsl_dataset_t *ds;
 
 	nvlist_t *out = (nvlist_t *) arg;
-	error = mlec_open_objset(dsname, FTAG, &os);
-	if (error != 0)
-		return (0);
 
+	error = mlec_open_objset(dsname, FTAG, &os, &ds);
+	if (error != 0) {
+		zfs_dbgmsg("mlec_open_objset failed");
+		return (0);
+	}
+
+	// nvlist_add_int64(out, "children", 101);
 	mlec_dump_objset(os, out);
-	mlec_close_objset(os, FTAG);
+	mlec_close_objset(os, FTAG, ds);
 	return (0);
 }
 
@@ -7507,6 +7512,7 @@ zfs_ioc_pool_all_dnode(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 
 	dmu_objset_find(spa_name(spa), mlec_dump_one_objset,
 		    outnvl, DS_FIND_CHILDREN);
+
 
 	spa_close(spa, FTAG);
 
