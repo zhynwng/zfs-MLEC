@@ -223,6 +223,7 @@
 
 // MLEC include
 #include <sys/vdev_raidz.h>
+#include <sys/zfs_sa.h>
 
 kmutex_t zfsdev_state_lock;
 zfsdev_state_t *zfsdev_state_list;
@@ -7365,6 +7366,48 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 }
 
 static int
+mlec_zfs_sa_setup(objset_t *osp, sa_attr_type_t **sa_table)
+{
+	uint64_t sa_obj = 0;
+	int error;
+
+	error = zap_lookup(osp, MASTER_NODE_OBJ, ZFS_SA_ATTRS, 8, 1, &sa_obj);
+	if (error != 0 && error != ENOENT)
+		return (error);
+
+	error = sa_setup(osp, sa_obj, zfs_attr_table, ZPL_END, sa_table);
+	return (error);
+}
+
+static int
+mlec_zfs_grab_sa_handle(objset_t *osp, uint64_t obj, sa_handle_t **hdlp,
+    dmu_buf_t **db, void *tag)
+{
+	dmu_object_info_t doi;
+	int error;
+
+	if ((error = sa_buf_hold(osp, obj, tag, db)) != 0)
+		return (error);
+
+	dmu_object_info_from_db(*db, &doi);
+	if ((doi.doi_bonus_type != DMU_OT_SA &&
+	    doi.doi_bonus_type != DMU_OT_ZNODE) ||
+	    (doi.doi_bonus_type == DMU_OT_ZNODE &&
+	    doi.doi_bonus_size < sizeof (znode_phys_t))) {
+		sa_buf_rele(*db, tag);
+		return (SET_ERROR(ENOTSUP));
+	}
+
+	error = sa_handle_get(osp, obj, NULL, SA_HDL_PRIVATE, hdlp);
+	if (error != 0) {
+		sa_buf_rele(*db, tag);
+		return (error);
+	}
+
+	return (0);
+}
+
+static int
 zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
 	zfs_dbgmsg("zfs pool_failed_chunks called");
@@ -7378,8 +7421,8 @@ zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	// Get the vdev_top
 	vdev_t *top = vdev_lookup_top(spa, 0);
 	vdev_raidz_t *vrt = top->vdev_tsd;
-	zfs_dbgmsg("vdev raidz width %ld, parity %ld", vrt->vd_logical_width, vrt->vd_nparity);
-	zfs_dbgmsg("vdev ashift %ld, asize %ld", top->vdev_ashift, top->vdev_asize);
+	zfs_dbgmsg("vdev raidz width %d, parity %d", vrt->vd_logical_width, vrt->vd_nparity);
+	zfs_dbgmsg("vdev ashift %lld, asize %lld", top->vdev_ashift, top->vdev_asize);
 	
 	// Get the number of chunks, and number of stripes
 	int innvl_err = 0;
@@ -7395,7 +7438,6 @@ zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		return 1;
 	}
 
-	// 4. Find the dnode pointing to the FILE that we want to repair
 	dnode_t *dnode_repair;
 	if (dnode_hold(dsl_dataset->ds_objset, object_id, FTAG, &dnode_repair))
 	{
@@ -7404,6 +7446,39 @@ zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		spa_close(spa, FTAG);
 		return 1;
 	}
+
+	// The size come from sa attributes
+	sa_attr_type_t *sa_table;
+	sa_handle_t *hdl;
+	dmu_buf_t *db;
+	int error;
+
+	error = mlec_zfs_sa_setup(dsl_dataset->ds_objset, &sa_table);
+	if (error != 0)
+		return (error);
+
+	error = mlec_zfs_grab_sa_handle(dsl_dataset->ds_objset, object_id, &hdl, &db, FTAG);
+	if (error != 0)
+		return (error);
+
+	sa_bulk_attr_t bulk[12];
+	int idx = 0;
+	uint64_t fsize;
+	SA_ADD_BULK_ATTR(bulk, idx, sa_table[ZPL_SIZE], NULL, &fsize, 8);
+
+	if (sa_bulk_lookup(hdl, bulk, idx) != 0){
+		zfs_dbgmsg("sa_bulk_lookup failed");
+		sa_handle_destroy(hdl);
+		sa_buf_rele(db, FTAG);
+		dnode_rele(dnode_repair, FTAG);
+		dsl_dataset_rele(dsl_dataset, FTAG);
+		spa_close(spa, FTAG);
+		return 1;
+	}
+
+	zfs_dbgmsg("failed chunks dnode size %lld", fsize);
+	sa_handle_destroy(hdl);
+	sa_buf_rele(db, FTAG);
 
 	dnode_rele(dnode_repair, FTAG);
 	dsl_dataset_rele(dsl_dataset, FTAG);
@@ -7484,7 +7559,7 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 			if (zfs_obj_to_path(os, object, path, sizeof(path))) {
 				zfs_dbgmsg("Error retrieving dnode path");
 			}
-			zfs_dbgmsg("dnode %ld:%ld, type %ld, path %s", dmu_objset_id(os), object, dn->dn_type, path);
+			zfs_dbgmsg("dnode %lld:%lld, type %d, path %s", dmu_objset_id(os), object, dn->dn_type, path);
 
 			// Set that into the list
 			int nv_error = 0;
@@ -7523,7 +7598,7 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 
 			// Set that into the out nvlist
 			char index[5];
-			sprintf(index, "%ld", num_object);
+			sprintf(index, "%d", num_object);
 
 			nv_error = nvlist_add_nvlist(out, index, attributes);
 			if (nv_error) {
@@ -8384,7 +8459,7 @@ long zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 		zfs_dbgmsg("zfsdev_ioctl_common(): checking input nvlist");
 		error = zfs_check_input_nvpairs(innvl, vec);
 		if (error != 0) {
-			zfs_dbgmsg("nvlist not good %ld!", error);
+			zfs_dbgmsg("nvlist not good %d!", error);
 			goto out;
 		}
 	}
@@ -8449,7 +8524,7 @@ long zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 		error = vec->zvec_func(zc->zc_name, innvl, outnvl);
 		spl_fstrans_unmark(cookie);
 
-		zfs_dbgmsg("spl cookie good, error now %ld", error);
+		zfs_dbgmsg("spl cookie good, error now %d", error);
 		/*
 		 * Some commands can partially execute, modify state, and still
 		 * return an error.  In these cases, attempt to record what
