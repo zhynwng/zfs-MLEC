@@ -7367,191 +7367,6 @@ zfs_ioctl_register_dataset_modify(zfs_ioc_t ioc, zfs_ioc_legacy_func_t *func,
 }
 
 static int
-mlec_zfs_sa_setup(objset_t *osp, sa_attr_type_t **sa_table)
-{
-	uint64_t sa_obj = 0;
-	int error;
-
-	error = zap_lookup(osp, MASTER_NODE_OBJ, ZFS_SA_ATTRS, 8, 1, &sa_obj);
-	if (error != 0 && error != ENOENT)
-		return (error);
-
-	error = sa_setup(osp, sa_obj, zfs_attr_table, ZPL_END, sa_table);
-	return (error);
-}
-
-static int
-mlec_zfs_grab_sa_handle(objset_t *osp, uint64_t obj, sa_handle_t **hdlp,
-    dmu_buf_t **db, void *tag)
-{
-	dmu_object_info_t doi;
-	int error;
-
-	if ((error = sa_buf_hold(osp, obj, tag, db)) != 0)
-		return (error);
-
-	dmu_object_info_from_db(*db, &doi);
-	if ((doi.doi_bonus_type != DMU_OT_SA &&
-	    doi.doi_bonus_type != DMU_OT_ZNODE) ||
-	    (doi.doi_bonus_type == DMU_OT_ZNODE &&
-	    doi.doi_bonus_size < sizeof (znode_phys_t))) {
-		sa_buf_rele(*db, tag);
-		return (SET_ERROR(ENOTSUP));
-	}
-
-	error = sa_handle_get(osp, obj, NULL, SA_HDL_PRIVATE, hdlp);
-	if (error != 0) {
-		sa_buf_rele(*db, tag);
-		return (error);
-	}
-
-	return (0);
-}
-
-static int
-zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
-{
-	zfs_dbgmsg("zfs pool_failed_chunks called");
-	spa_t *spa;
-
-	if (spa_open(poolname, &spa, FTAG)) {
-		zfs_dbgmsg("spa cannot be opened");
-		return 2;
-	}
-
-	// Get the vdev_top
-	vdev_t *top = vdev_lookup_top(spa, 0);
-	vdev_raidz_t *vrt = top->vdev_tsd;
-	zfs_dbgmsg("vdev raidz width %d, parity %d", vrt->vd_logical_width, vrt->vd_nparity);
-	zfs_dbgmsg("vdev ashift %lld, sector size %lld", top->vdev_ashift, 1 << top->vdev_ashift);
-	
-	// Get the number of chunks, and number of stripes
-	int innvl_err = 0;
-	uint64_t objset_id, object_id;
-	innvl_err += nvlist_lookup_uint64(innvl, "objset_id", &objset_id);
-	innvl_err += nvlist_lookup_uint64(innvl, "object_id", &object_id);
-	
-	dsl_dataset_t *dsl_dataset;
-	if (dsl_dataset_hold_obj(spa->spa_dsl_pool, objset_id, FTAG, &dsl_dataset))
-	{
-		zfs_dbgmsg("dsl_dataset open failed");
-		spa_close(spa, FTAG);
-		return 1;
-	}
-
-	dnode_t *dnode_repair;
-	if (dnode_hold(dsl_dataset->ds_objset, object_id, FTAG, &dnode_repair))
-	{
-		zfs_dbgmsg("dnode_t open failed");
-		dsl_dataset_rele(dsl_dataset, FTAG);
-		spa_close(spa, FTAG);
-		return 1;
-	}
-
-	// The size come from sa attributes
-	sa_attr_type_t *sa_table;
-	sa_handle_t *hdl;
-	dmu_buf_t *db;
-	int error;
-
-	error = mlec_zfs_sa_setup(dsl_dataset->ds_objset, &sa_table);
-	if (error != 0)
-		return (error);
-
-	error = mlec_zfs_grab_sa_handle(dsl_dataset->ds_objset, object_id, &hdl, &db, FTAG);
-	if (error != 0)
-		return (error);
-
-	sa_bulk_attr_t bulk[12];
-	int idx = 0;
-	uint64_t fsize;
-	SA_ADD_BULK_ATTR(bulk, idx, sa_table[ZPL_SIZE], NULL, &fsize, 8);
-
-	if (sa_bulk_lookup(hdl, bulk, idx) != 0){
-		zfs_dbgmsg("sa_bulk_lookup failed");
-		sa_handle_destroy(hdl);
-		sa_buf_rele(db, FTAG);
-		dnode_rele(dnode_repair, FTAG);
-		dsl_dataset_rele(dsl_dataset, FTAG);
-		spa_close(spa, FTAG);
-		return 1;
-	}
-
-	uint64_t dcols = vrt->vd_logical_width;
-	uint64_t nparity = vrt->vd_nparity;
-	uint64_t ashift = top->vdev_ashift;
-
-	uint64_t b = 0;
-	/* The zio's size in units of the vdev's minimum sector size. */
-	uint64_t s = fsize >> ashift;
-	/* The first column for this stripe. */
-	uint64_t f = b % dcols;
-	/* The starting byte offset on each child vdev. */
-	// Question? why is this / dcols, not (dcols - 1)? 
-	uint64_t o = (b / dcols) << ashift;
-	uint64_t q, r, c, bc, col, acols, scols, coff, devidx, asize, tot;
-
-	/*
-	 * "Quotient": The number of data sectors for this stripe on all but
-	 * the "big column" child vdevs that also contain "remainder" data.
-	 */
-	q = s / (dcols - nparity);
-
-	/*
-	 * "Remainder": The number of partial stripe data sectors in this I/O.
-	 * This will add a sector to some, but not all, child vdevs.
-	 */
-	r = s - q * (dcols - nparity);
-
-	/* The number of "big columns" - those which contain remainder data. */
-	bc = (r == 0 ? 0 : r + nparity);
-
-	/*
-	 * The total number of data and parity sectors associated with
-	 * this I/O.
-	 */
-	tot = s + nparity * (q + (r == 0 ? 0 : 1));
-
-	/*
-	 * acols: The columns that will be accessed.
-	 * scols: The columns that will be accessed or skipped.
-	 */
-	if (q == 0) {
-		/* Our I/O request doesn't span all child vdevs. */
-		acols = bc;
-		scols = MIN(dcols, roundup(bc, nparity + 1));
-	} else {
-		acols = dcols;
-		scols = dcols;
-	}
-
-	// Check how many stripes there are
-	
-	zfs_dbgmsg("failed chunks dnode size %lld, num full stripe sectors %lld, num partial stripe sectors %lld", fsize, q, r);
-	sa_handle_destroy(hdl);
-	sa_buf_rele(db, FTAG);
-
-	dnode_rele(dnode_repair, FTAG);
-	dsl_dataset_rele(dsl_dataset, FTAG);
-	spa_close(spa, FTAG);
-
-	return 0;
-}
-
-// Always return 0
-static int
-zfs_pool_failed_chunks_sec_policy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
-{
-	return 0;
-}
-
-static const zfs_ioc_key_t zfs_keys_failed_chunks[] = {
-	{"objset_id", DATA_TYPE_UINT64, 0},
-	{"object_id", DATA_TYPE_UINT64, 0}
-};
-
-
-static int
 mlec_open_objset(const char *path, void *tag, objset_t **osp, dsl_dataset_t **dsl_dataset)
 {
 	
@@ -7690,6 +7505,230 @@ mlec_dump_one_objset(const char *dsname, void *arg)
 }
 
 static int
+zfs_get_vdev_children_status(vdev_t *vdev, int64_t *child_status) {
+	// Check how many children it has
+	if (vdev->vdev_children == 0) {
+		return 1;
+	}
+
+	for (int i = 0; i < vdev->vdev_children; i++) {
+		child_status[i] = vdev_open(vdev->vdev_child[i]);
+		zfs_dbgmsg("child status %d is %lld", i, child_status[i]);
+	}
+
+	return 0;
+}
+
+static int
+mlec_zfs_sa_setup(objset_t *osp, sa_attr_type_t **sa_table)
+{
+	uint64_t sa_obj = 0;
+	int error;
+
+	error = zap_lookup(osp, MASTER_NODE_OBJ, ZFS_SA_ATTRS, 8, 1, &sa_obj);
+	if (error != 0 && error != ENOENT)
+		return (error);
+
+	error = sa_setup(osp, sa_obj, zfs_attr_table, ZPL_END, sa_table);
+	return (error);
+}
+
+static int
+mlec_zfs_grab_sa_handle(objset_t *osp, uint64_t obj, sa_handle_t **hdlp,
+    dmu_buf_t **db, void *tag)
+{
+	dmu_object_info_t doi;
+	int error;
+
+	if ((error = sa_buf_hold(osp, obj, tag, db)) != 0)
+		return (error);
+
+	dmu_object_info_from_db(*db, &doi);
+	if ((doi.doi_bonus_type != DMU_OT_SA &&
+	    doi.doi_bonus_type != DMU_OT_ZNODE) ||
+	    (doi.doi_bonus_type == DMU_OT_ZNODE &&
+	    doi.doi_bonus_size < sizeof (znode_phys_t))) {
+		sa_buf_rele(*db, tag);
+		return (SET_ERROR(ENOTSUP));
+	}
+
+	error = sa_handle_get(osp, obj, NULL, SA_HDL_PRIVATE, hdlp);
+	if (error != 0) {
+		sa_buf_rele(*db, tag);
+		return (error);
+	}
+
+	return (0);
+}
+
+static int mlec_get_dsl_dataset(spa_t *spa, uint64_t objset_id, dsl_dataset_t **dsl_dataset) {
+	if (dsl_dataset_hold_obj(spa->spa_dsl_pool, objset_id, FTAG, dsl_dataset))
+	{
+		zfs_dbgmsg("dsl_dataset open failed");
+		spa_close(spa, FTAG);
+		return 1;
+	}
+
+	return 0;
+}
+
+static int mlec_get_dn(spa_t *spa, dsl_dataset_t *dsl_dataset, uint64_t object_id, dnode_t **dnode) {
+	if (dnode_hold(dsl_dataset->ds_objset, object_id, FTAG, dnode))
+	{
+		zfs_dbgmsg("dnode_t open failed");
+		dsl_dataset_rele(dsl_dataset, FTAG);
+		spa_close(spa, FTAG);
+		return 1;
+	}
+
+	return 0;
+}
+
+static int mlec_get_dn_fsize(spa_t *spa, dsl_dataset_t *dsl_dataset, uint64_t object_id, dnode_t *dnode_repair, uint64_t *fsize, sa_handle_t **hdl, dmu_buf_t **db) {
+	// The size come from sa attributes
+	sa_attr_type_t *sa_table;
+	int error;
+
+	error = mlec_zfs_sa_setup(dsl_dataset->ds_objset, &sa_table);
+	if (error != 0)
+		return (error);
+
+	error = mlec_zfs_grab_sa_handle(dsl_dataset->ds_objset, object_id, hdl, db, FTAG);
+	if (error != 0)
+		return (error);
+
+	sa_bulk_attr_t bulk[12];
+	int idx = 0;
+	SA_ADD_BULK_ATTR(bulk, idx, sa_table[ZPL_SIZE], NULL, fsize, 8);
+
+	if (sa_bulk_lookup(*hdl, bulk, idx) != 0){
+		zfs_dbgmsg("sa_bulk_lookup failed");
+		sa_handle_destroy(*hdl);
+		sa_buf_rele(*db, FTAG);
+		dnode_rele(dnode_repair, FTAG);
+		dsl_dataset_rele(dsl_dataset, FTAG);
+		spa_close(spa, FTAG);
+		return 1;
+	}
+	
+	return 0;
+}
+
+static int
+zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
+{
+	zfs_dbgmsg("zfs pool_failed_chunks called");
+	spa_t *spa;
+
+	if (spa_open(poolname, &spa, FTAG)) {
+		zfs_dbgmsg("spa cannot be opened");
+		return 2;
+	}
+
+	// Get the vdev_top
+	vdev_t *top = vdev_lookup_top(spa, 0);
+	vdev_raidz_t *vrt = top->vdev_tsd;
+	zfs_dbgmsg("vdev raidz width %d, parity %d", vrt->vd_logical_width, vrt->vd_nparity);
+	zfs_dbgmsg("vdev ashift %lld, sector size %d", top->vdev_ashift, 1 << top->vdev_ashift);
+	
+	// Get the number of chunks, and number of stripes
+	int innvl_err = 0;
+	uint64_t objset_id, object_id;
+	innvl_err += nvlist_lookup_uint64(innvl, "objset_id", &objset_id);
+	innvl_err += nvlist_lookup_uint64(innvl, "object_id", &object_id);
+	
+	dsl_dataset_t *dsl_dataset;
+	if (mlec_get_dsl_dataset(spa, objset_id, &dsl_dataset)) {
+		return 1;
+	}
+
+	dnode_t *dnode_repair;
+	if (mlec_get_dn(spa, dsl_dataset, object_id, &dnode_repair)) {
+		return 1;
+	}
+
+	sa_handle_t *hdl;
+	dmu_buf_t *db;
+	uint64_t fsize;
+	if (mlec_get_dn_fsize(spa, dsl_dataset, object_id, dnode_repair, &fsize, &hdl, &db)) {
+		return 1;
+	}
+
+	uint64_t dcols = vrt->vd_logical_width;
+	uint64_t nparity = vrt->vd_nparity;
+	uint64_t ashift = top->vdev_ashift;
+
+	uint64_t b = 0;
+	/* The zio's size in units of the vdev's minimum sector size. */
+	uint64_t s = fsize >> ashift;
+	/* The first column for this stripe. */
+	uint64_t f = b % dcols;
+	/* The starting byte offset on each child vdev. */
+	// Question? why is this / dcols, not (dcols - 1)? 
+	uint64_t o = (b / dcols) << ashift;
+	uint64_t q, r, c, bc, col, acols, scols, coff, devidx, asize, tot;
+
+	/*
+	 * "Quotient": The number of data sectors for this stripe on all but
+	 * the "big column" child vdevs that also contain "remainder" data.
+	 */
+	q = s / (dcols - nparity);
+
+	/*
+	 * "Remainder": The number of partial stripe data sectors in this I/O.
+	 * This will add a sector to some, but not all, child vdevs.
+	 */
+	r = s - q * (dcols - nparity);
+
+	/* The number of "big columns" - those which contain remainder data. */
+	bc = (r == 0 ? 0 : r + nparity);
+
+	/*
+	 * The total number of data and parity sectors associated with
+	 * this I/O.
+	 */
+	tot = s + nparity * (q + (r == 0 ? 0 : 1));
+
+	/*
+	 * acols: The columns that will be accessed.
+	 * scols: The columns that will be accessed or skipped.
+	 */
+	if (q == 0) {
+		/* Our I/O request doesn't span all child vdevs. */
+		acols = bc;
+		scols = MIN(dcols, roundup(bc, nparity + 1));
+	} else {
+		acols = dcols;
+		scols = dcols;
+	}
+
+	// Check how many stripes there are
+	uint64_t num_stripes = q / (dcols - nparity) + (r != 0 ? 1 : 0);
+	
+	zfs_dbgmsg("failed chunks dnode size %lld, num full stripe sectors %lld, num partial stripe sectors %lld", fsize, q, r);
+	sa_handle_destroy(hdl);
+	sa_buf_rele(db, FTAG);
+
+	dnode_rele(dnode_repair, FTAG);
+	dsl_dataset_rele(dsl_dataset, FTAG);
+	spa_close(spa, FTAG);
+
+	return 0;
+}
+
+// Always return 0
+static int
+zfs_pool_failed_chunks_sec_policy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
+{
+	return 0;
+}
+
+static const zfs_ioc_key_t zfs_keys_failed_chunks[] = {
+	{"objset_id", DATA_TYPE_UINT64, 0},
+	{"object_id", DATA_TYPE_UINT64, 0},
+};
+
+static int
 zfs_ioc_pool_all_dnode(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
 	zfs_dbgmsg("zfs pool_all_dnode called");
@@ -7731,18 +7770,9 @@ zfs_ioc_pool_easy_scan(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	}
 
 	vdev_t *top_vdev = vdev_lookup_top(spa, 0);
-
-	// Check how many children it has
-	if (top_vdev->vdev_children == 0) {
-		return 1;
-	}
-
 	int64_t child_status[top_vdev->vdev_children];
 
-	for (int i = 0; i < top_vdev->vdev_children; i++) {
-		child_status[i] = vdev_open(top_vdev->vdev_child[i]);
-		zfs_dbgmsg("child status %d is %lld", i, child_status[i]);
-	}
+	zfs_get_vdev_children_status(top_vdev, child_status);
 
 	nvlist_add_int64_array(outnvl, "children_status", child_status, top_vdev->vdev_children);
 	nvlist_add_int64(outnvl, "children", top_vdev->vdev_children);
