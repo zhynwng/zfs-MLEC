@@ -223,6 +223,7 @@
 
 // MLEC include
 #include <sys/vdev_raidz.h>
+#include <sys/vdev_raidz_impl.h>
 #include <sys/zfs_sa.h>
 
 kmutex_t zfsdev_state_lock;
@@ -7422,7 +7423,7 @@ zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	vdev_t *top = vdev_lookup_top(spa, 0);
 	vdev_raidz_t *vrt = top->vdev_tsd;
 	zfs_dbgmsg("vdev raidz width %d, parity %d", vrt->vd_logical_width, vrt->vd_nparity);
-	zfs_dbgmsg("vdev ashift %lld, asize %lld", top->vdev_ashift, top->vdev_asize);
+	zfs_dbgmsg("vdev ashift %lld, sector size %lld", top->vdev_ashift, 1 << top->vdev_ashift);
 	
 	// Get the number of chunks, and number of stripes
 	int innvl_err = 0;
@@ -7476,7 +7477,57 @@ zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 		return 1;
 	}
 
-	zfs_dbgmsg("failed chunks dnode size %lld", fsize);
+	uint64_t dcols = vrt->vd_logical_width;
+	uint64_t nparity = vrt->vd_nparity;
+	uint64_t ashift = top->vdev_ashift;
+
+	uint64_t b = 0;
+	/* The zio's size in units of the vdev's minimum sector size. */
+	uint64_t s = fsize >> ashift;
+	/* The first column for this stripe. */
+	uint64_t f = b % dcols;
+	/* The starting byte offset on each child vdev. */
+	// Question? why is this / dcols, not (dcols - 1)? 
+	uint64_t o = (b / dcols) << ashift;
+	uint64_t q, r, c, bc, col, acols, scols, coff, devidx, asize, tot;
+
+	/*
+	 * "Quotient": The number of data sectors for this stripe on all but
+	 * the "big column" child vdevs that also contain "remainder" data.
+	 */
+	q = s / (dcols - nparity);
+
+	/*
+	 * "Remainder": The number of partial stripe data sectors in this I/O.
+	 * This will add a sector to some, but not all, child vdevs.
+	 */
+	r = s - q * (dcols - nparity);
+
+	/* The number of "big columns" - those which contain remainder data. */
+	bc = (r == 0 ? 0 : r + nparity);
+
+	/*
+	 * The total number of data and parity sectors associated with
+	 * this I/O.
+	 */
+	tot = s + nparity * (q + (r == 0 ? 0 : 1));
+
+	/*
+	 * acols: The columns that will be accessed.
+	 * scols: The columns that will be accessed or skipped.
+	 */
+	if (q == 0) {
+		/* Our I/O request doesn't span all child vdevs. */
+		acols = bc;
+		scols = MIN(dcols, roundup(bc, nparity + 1));
+	} else {
+		acols = dcols;
+		scols = dcols;
+	}
+
+	// Check how many stripes there are
+	
+	zfs_dbgmsg("failed chunks dnode size %lld, num full stripe sectors %lld, num partial stripe sectors %lld", fsize, q, r);
 	sa_handle_destroy(hdl);
 	sa_buf_rele(db, FTAG);
 
