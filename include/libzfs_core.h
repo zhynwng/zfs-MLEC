@@ -140,6 +140,7 @@ int lzc_get_bootenv(const char *, nvlist_t **);
 
 // MLEC test stuff
 int lzc_mlec_test(const char *pool, const nvlist_t *input);
+int lzc_mlec_get_failed_chunks(const char *pool, const nvlist_t *input, const nvlist_t *output);
 
 #ifdef	__cplusplus
 }

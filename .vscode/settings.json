@@ -16,6 +16,7 @@
         "cstdio": "c",
         "cinttypes": "c",
         "cstdbool": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "nvpair.h": "c"
     }
 }
