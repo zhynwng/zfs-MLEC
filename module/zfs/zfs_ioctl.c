@@ -7550,6 +7550,20 @@ static int mlec_get_raidz_info(vdev_t *top, vdev_raidz_t *vrt, uint64_t fsize, r
 	return 0;
 }
 
+static int
+zfs_get_vdev_children_status(vdev_t *vdev, int64_t *child_status) {
+	// Check how many children it has
+	if (vdev->vdev_children == 0) {
+		return 1;
+	}
+
+	for (int i = 0; i < vdev->vdev_children; i++) {
+		child_status[i] = vdev_open(vdev->vdev_child[i]);
+		zfs_dbgmsg("child status %d is %lld", i, child_status[i]);
+	}
+
+	return 0;
+}
 
 static int
 mlec_dump_objset(objset_t *os, nvlist_t *out)
@@ -7564,6 +7578,8 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 
 	if (BP_IS_HOLE(os->os_rootbp))
 		return -1;
+
+	vdev_t *vdev = vdev_lookup_top(os->os_spa, 0);
 
 	int num_object = 0;
 	object = 0;
@@ -7582,39 +7598,18 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 			// Set that into the list
 			int nv_error = 0;
 
-			// Get the fsize of the datanode
-
 			nvlist_t *attributes;
-			nv_error = nvlist_alloc(&attributes, NV_UNIQUE_NAME, 0);
+			nv_error += nvlist_alloc(&attributes, NV_UNIQUE_NAME, 0);
 			if (nv_error) {
 				zfs_dbgmsg("Error while allocating nvlist");
 				dnode_rele(dn, FTAG);
 				return -1;
 			}
-			nv_error = nvlist_add_int64(attributes, "objset", dmu_objset_id(os));
-			if (nv_error) {
-				zfs_dbgmsg("Error while putting objset into nvlist");
-				dnode_rele(dn, FTAG);
-				return -1;
-			}
-			nv_error = nvlist_add_int64(attributes, "object", object);
-			if (nv_error) {
-				zfs_dbgmsg("Error while putting object into nvlist");
-				dnode_rele(dn, FTAG);
-				return -1;
-			}
-			nv_error = nvlist_add_int64(attributes, "type", dn->dn_type);
-			if (nv_error) {
-				zfs_dbgmsg("Error while putting type into nvlist");
-				dnode_rele(dn, FTAG);
-				return -1;
-			}
-			nv_error = nvlist_add_string(attributes, "path", path);
-			if (nv_error) {
-				zfs_dbgmsg("Error while putting path into nvlist");
-				dnode_rele(dn, FTAG);
-				return -1;
-			}
+
+			nv_error += nvlist_add_int64(attributes, "objset", dmu_objset_id(os));
+			nv_error += nvlist_add_int64(attributes, "object", object);
+			nv_error += nvlist_add_int64(attributes, "type", dn->dn_type);
+			nv_error += nvlist_add_string(attributes, "path", path);
 			
 			// Get the fsize
 			uint64_t fsize;
@@ -7626,27 +7621,30 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 				sa_buf_rele(db, FTAG);
 				return -1;
 			}
-			nv_error = nvlist_add_int64(attributes, "fsize", fsize);
-			if (nv_error) {
-				zfs_dbgmsg("Error while putting fsize into nvlist");
-				dnode_rele(dn, FTAG);
-				return -1;
-			}
+			nv_error += nvlist_add_int64(attributes, "fsize", fsize);
 
 			// Get the failure information
-			vdev_t *vdev = vdev_lookup_top(os->os_spa, 0);
+			int64_t child_status[vdev->vdev_children];
 			raidz_info_t info;
 			mlec_get_raidz_info(vdev, vdev->vdev_tsd, fsize, &info);
+			zfs_get_vdev_children_status(vdev, child_status);
+			
+			// Get child status
+			nv_error += nvlist_add_int64_array(attributes, "child_status", child_status, vdev->vdev_children);
 
+			// Get number of stripes
+			uint64_t number_of_stripes = info.q / (info.dcols - info.nparity);
+			nv_error += nvlist_add_int64(attributes, "num_stripes", number_of_stripes);
+			nv_error += nvlist_add_int64(attributes, "num_remainder_stripes", info.r == 0 ? 0 : 1);
 			zfs_dbgmsg("failed chunks dnode size %lld, num full stripe sectors %lld, num partial stripe sectors %lld", fsize, info.q, info.r);
 
 			// Set that into the out nvlist
 			char index[5];
 			sprintf(index, "%d", num_object);
+			nv_error += nvlist_add_nvlist(out, index, attributes);
 
-			nv_error = nvlist_add_nvlist(out, index, attributes);
 			if (nv_error) {
-				zfs_dbgmsg("Error while putting attributes into output list");
+				zfs_dbgmsg("Error while handling nvlist");
 				dnode_rele(dn, FTAG);
 				return -1;
 			}
@@ -7680,21 +7678,6 @@ mlec_dump_one_objset(const char *dsname, void *arg)
 	mlec_dump_objset(os, out);
 	mlec_close_objset(os, FTAG, ds);
 	return (0);
-}
-
-static int
-zfs_get_vdev_children_status(vdev_t *vdev, int64_t *child_status) {
-	// Check how many children it has
-	if (vdev->vdev_children == 0) {
-		return 1;
-	}
-
-	for (int i = 0; i < vdev->vdev_children; i++) {
-		child_status[i] = vdev_open(vdev->vdev_child[i]);
-		zfs_dbgmsg("child status %d is %lld", i, child_status[i]);
-	}
-
-	return 0;
 }
 
 static int mlec_get_dsl_dataset(spa_t *spa, uint64_t objset_id, dsl_dataset_t **dsl_dataset) {
@@ -7751,11 +7734,12 @@ zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	}
 
 	/**
-	 * #2. Get all the dnode on the drive
+	 * #2. Get all the dnode on the drive, while dumping the dnode
 	 */
 	int num_object = mlec_dump_objset(dsl_dataset->ds_objset, outnvl);
 	zfs_dbgmsg("mlec_dump_objset contains %ld objects", num_object);
 
+	
 	dsl_dataset_rele(dsl_dataset, FTAG);
 	spa_close(spa, FTAG);
 
