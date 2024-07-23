@@ -2269,12 +2269,12 @@ zio_execute_stack_check(zio_t *zio)
 __attribute__((always_inline)) static inline void
 __zio_execute(zio_t *zio)
 {
-	zfs_dbgmsg("__zio_execute callled");
+	// zfs_dbgmsg("__zio_execute callled");
 	ASSERT3U(zio->io_queued_timestamp, >, 0);
 
 	while (zio->io_stage < ZIO_STAGE_DONE)
 	{
-		zfs_dbgmsg("Current io stage %d", highbit64(zio->io_stage));
+		// zfs_dbgmsg("Current io stage %d", highbit64(zio->io_stage));
 		enum zio_stage pipeline = zio->io_pipeline;
 		enum zio_stage stage = zio->io_stage;
 
@@ -2289,7 +2289,7 @@ __zio_execute(zio_t *zio)
 			stage <<= 1;
 		} while ((stage & pipeline) == 0);
 
-		zfs_dbgmsg("After while loop, stage is %d", highbit64(stage));
+		// zfs_dbgmsg("After while loop, stage is %d", highbit64(stage));
 
 		ASSERT(stage <= ZIO_STAGE_DONE);
 		/*
@@ -2304,7 +2304,7 @@ __zio_execute(zio_t *zio)
 		if ((stage & ZIO_BLOCKING_STAGES) && zio->io_vd == NULL &&
 			zio_taskq_member(zio, ZIO_TASKQ_INTERRUPT))
 		{
-			zfs_dbgmsg("We are cutting the line");
+			// zfs_dbgmsg("We are cutting the line");
 			boolean_t cut = (stage == ZIO_STAGE_VDEV_IO_START) ? zio_requeue_io_start_cut_in_line : B_FALSE;
 			zio_taskq_dispatch(zio, ZIO_TASKQ_ISSUE, cut);
 			return;
@@ -2330,17 +2330,17 @@ __zio_execute(zio_t *zio)
 		 * (typically the same as this one), or NULL if we should
 		 * stop.
 		 */
-		zfs_dbgmsg("Executing zio pipeline %d", highbit64(stage) - 1);
+		// zfs_dbgmsg("Executing zio pipeline %d", highbit64(stage) - 1);
 		zio = zio_pipeline[highbit64(stage) - 1](zio);
 
 		if (zio == NULL)
 		{
-			zfs_dbgmsg("zio became null!");
+			// zfs_dbgmsg("zio became null!");
 			return;
 		}
 	}
 
-	zfs_dbgmsg("io pipeline done, stage at %d", zio->io_stage);
+	// zfs_dbgmsg("io pipeline done, stage at %d", zio->io_stage);
 }
 
 /*
@@ -2369,7 +2369,7 @@ int zio_wait(zio_t *zio)
 	ASSERT0(zio->io_queued_timestamp);
 	zio->io_queued_timestamp = gethrtime();
 
-	zfs_dbgmsg("The num of parent zio %ld", zio->io_parent_count);
+	// zfs_dbgmsg("The num of parent zio %ld", zio->io_parent_count);
 
 	__zio_execute(zio);
 
@@ -2425,7 +2425,7 @@ void zio_nowait(zio_t *zio)
 
 	ASSERT0(zio->io_queued_timestamp);
 	zio->io_queued_timestamp = gethrtime();
-	zfs_dbgmsg("Calling __zio_execute()");
+	// zfs_dbgmsg("Calling __zio_execute()");
 	__zio_execute(zio);
 }
 
@@ -4621,7 +4621,7 @@ int zio_worst_error(int e1, int e2)
 static zio_t *
 zio_ready(zio_t *zio)
 {
-	zfs_dbgmsg("zio_ready called");
+	// zfs_dbgmsg("zio_ready called");
 	blkptr_t *bp = zio->io_bp;
 	zio_t *pio, *pio_next;
 	zio_link_t *zl = NULL;
@@ -4771,7 +4771,7 @@ zio_dva_throttle_done(zio_t *zio)
 static zio_t *
 zio_done(zio_t *zio)
 {
-	zfs_dbgmsg("zio_done() called");
+	// zfs_dbgmsg("zio_done() called");
 	/*
 	 * Always attempt to keep stack usage minimal here since
 	 * we can be called recursively up to 19 levels deep.
@@ -4784,14 +4784,14 @@ zio_done(zio_t *zio)
 	 * If our children haven't all completed,
 	 * wait for them and then repeat this pipeline stage.
 	 */
-	zfs_dbgmsg("Waiting for children");
+	// zfs_dbgmsg("Waiting for children");
 	if (zio_wait_for_children(zio, ZIO_CHILD_ALL_BITS, ZIO_WAIT_DONE))
 	{
-		zfs_dbgmsg("wait for children error");
+		// zfs_dbgmsg("wait for children error");
 		return (NULL);
 	}
 
-	zfs_dbgmsg("wait for children successful");
+	// zfs_dbgmsg("wait for children successful");
 
 	/*
 	 * If the allocation throttle is enabled, then update the accounting.

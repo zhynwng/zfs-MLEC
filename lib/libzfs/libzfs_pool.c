@@ -2584,7 +2584,7 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 
 	// Set output size
 	// TODO: fix this excessive memory allocation
-	zc.zc_nvlist_dst_size = 6000;
+	zc.zc_nvlist_dst_size = 10000;
 	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
 
 	errno = 0;
