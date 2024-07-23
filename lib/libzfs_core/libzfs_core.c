@@ -1654,7 +1654,7 @@ lzc_mlec_test(const char *pool, const nvlist_t *input)
 	return (lzc_ioctl(ZFS_MLEC_TEST, pool, input, NULL));
 }
 
-int lzc_mlec_get_failed_chunks(const char *pool, const nvlist_t *input, const nvlist_t **output) {
+int lzc_mlec_get_failed_chunks(const char *pool, const nvlist_t *input, nvlist_t **output) {
 	return (lzc_ioctl(ZFS_IOC_POOL_FAILED_CHUNKS, pool, input, output));
 }
 
