@@ -172,7 +172,7 @@ static int
 lzc_ioctl(zfs_ioc_t ioc, const char *name,
     nvlist_t *source, nvlist_t **resultp)
 {
-	printf("lzc_ioctl called with %s and gfd %d\n", name, g_fd);
+	// printf("lzc_ioctl called with %s and gfd %d\n", name, g_fd);
 	zfs_cmd_t zc = {"\0"};
 	int error = 0;
 	char *packed = NULL;
@@ -211,7 +211,7 @@ lzc_ioctl(zfs_ioc_t ioc, const char *name,
 		}
 	}
 
-	printf("Calling zfs_ioctl_fd()\n");
+	// printf("Calling zfs_ioctl_fd()\n");
 	while (zfs_ioctl_fd(g_fd, ioc, &zc) != 0) {
 		/*
 		 * If ioctl exited with ENOMEM, we retry the ioctl after
