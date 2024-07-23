@@ -7634,6 +7634,8 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 			zfs_get_vdev_children_status(vdev, child_status);
 			
 			// Get child status
+			nv_error += nvlist_add_int64(attributes, "dcols", info.dcols);
+			nv_error += nvlist_add_int64(attributes, "nparity", info.nparity);
 			nv_error += nvlist_add_int64_array(attributes, "child_status", child_status, vdev->vdev_children);
 
 			// Get number of stripes
