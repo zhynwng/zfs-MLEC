@@ -7621,6 +7621,9 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 				sa_buf_rele(db, FTAG);
 				return -1;
 			}
+			sa_handle_destroy(hdl);
+			sa_buf_rele(db, FTAG);
+
 			nv_error += nvlist_add_int64(attributes, "fsize", fsize);
 
 			// Get the failure information
