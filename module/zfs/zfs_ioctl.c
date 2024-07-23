@@ -7465,6 +7465,92 @@ static int mlec_get_dn_fsize(dsl_dataset_t *dsl_dataset, uint64_t object_id, uin
 	return 0;
 }
 
+typedef struct raidz_info {
+	uint64_t dcols;
+	uint64_t nparity;
+	uint64_t ashift;
+	uint64_t b;
+	uint64_t s;
+	uint64_t f;
+	uint64_t o;
+	uint64_t q;
+	uint64_t r;
+	uint64_t bc;
+	uint64_t tot;
+	uint64_t acols;
+	uint64_t scols;
+	uint64_t num_stripes;
+} raidz_info_t;
+
+
+static int mlec_get_raidz_info(vdev_t *top, vdev_raidz_t *vrt, uint64_t fsize, raidz_info_t *info) {
+	uint64_t dcols = vrt->vd_logical_width;
+	uint64_t nparity = vrt->vd_nparity;
+	uint64_t ashift = top->vdev_ashift;
+
+	uint64_t b = 0;
+	/* The zio's size in units of the vdev's minimum sector size. */
+	uint64_t s = fsize >> ashift;
+	/* The first column for this stripe. */
+	uint64_t f = b % dcols;
+	/* The starting byte offset on each child vdev. */
+	// Question? why is this / dcols, not (dcols - 1)? 
+	uint64_t o = (b / dcols) << ashift;
+	uint64_t q, r, c, bc, col, acols, scols, tot;
+
+	/*
+	 * "Quotient": The number of data sectors for this stripe on all but
+	 * the "big column" child vdevs that also contain "remainder" data.
+	 */
+	q = s / (dcols - nparity);
+
+	/*
+	 * "Remainder": The number of partial stripe data sectors in this I/O.
+	 * This will add a sector to some, but not all, child vdevs.
+	 */
+	r = s - q * (dcols - nparity);
+
+	/* The number of "big columns" - those which contain remainder data. */
+	bc = (r == 0 ? 0 : r + nparity);
+
+	/*
+	 * The total number of data and parity sectors associated with
+	 * this I/O.
+	 */
+	tot = s + nparity * (q + (r == 0 ? 0 : 1));
+
+	/*
+	 * acols: The columns that will be accessed.
+	 * scols: The columns that will be accessed or skipped.
+	 */
+	if (q == 0) {
+		/* Our I/O request doesn't span all child vdevs. */
+		acols = bc;
+		scols = MIN(dcols, roundup(bc, nparity + 1));
+	} else {
+		acols = dcols;
+		scols = dcols;
+	}
+
+	// Assign into info
+	info->dcols = vrt->vd_logical_width;
+	info->nparity = vrt->vd_nparity;
+	info->ashift = top->vdev_ashift;
+	info->q = q;
+	info->r = r;
+	info->bc = bc;
+	info->tot = tot;
+	info->acols = acols;
+	info->scols = scols;
+
+	// MLEC custom stuff
+	uint64_t num_stripes = q / (dcols - nparity) + (r != 0 ? 1 : 0);
+	info->num_stripes = num_stripes;
+
+	return 0;
+}
+
+
 static int
 mlec_dump_objset(objset_t *os, nvlist_t *out)
 {
@@ -7547,6 +7633,13 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 				return -1;
 			}
 
+			// Get the failure information
+			vdev_t *vdev = vdev_lookup_top(os->os_spa, 0);
+			raidz_info_t info;
+			mlec_get_raidz_info(vdev, vdev->vdev_tsd, fsize, &info);
+
+			zfs_dbgmsg("failed chunks dnode size %lld, num full stripe sectors %lld, num partial stripe sectors %lld", fsize, info.q, info.r);
+
 			// Set that into the out nvlist
 			char index[5];
 			sprintf(index, "%d", num_object);
@@ -7627,90 +7720,6 @@ static int mlec_get_dn(spa_t *spa, dsl_dataset_t *dsl_dataset, uint64_t object_i
 	return 0;
 }
 
-typedef struct raidz_info {
-	uint64_t dcols;
-	uint64_t nparity;
-	uint64_t ashift;
-	uint64_t b;
-	uint64_t s;
-	uint64_t f;
-	uint64_t o;
-	uint64_t q;
-	uint64_t r;
-	uint64_t bc;
-	uint64_t tot;
-	uint64_t acols;
-	uint64_t scols;
-	uint64_t num_stripes;
-} raidz_info_t;
-
-static int mlec_get_raidz_info(vdev_t *top, vdev_raidz_t *vrt, uint64_t fsize, raidz_info_t *info) {
-	uint64_t dcols = vrt->vd_logical_width;
-	uint64_t nparity = vrt->vd_nparity;
-	uint64_t ashift = top->vdev_ashift;
-
-	uint64_t b = 0;
-	/* The zio's size in units of the vdev's minimum sector size. */
-	uint64_t s = fsize >> ashift;
-	/* The first column for this stripe. */
-	uint64_t f = b % dcols;
-	/* The starting byte offset on each child vdev. */
-	// Question? why is this / dcols, not (dcols - 1)? 
-	uint64_t o = (b / dcols) << ashift;
-	uint64_t q, r, c, bc, col, acols, scols, tot;
-
-	/*
-	 * "Quotient": The number of data sectors for this stripe on all but
-	 * the "big column" child vdevs that also contain "remainder" data.
-	 */
-	q = s / (dcols - nparity);
-
-	/*
-	 * "Remainder": The number of partial stripe data sectors in this I/O.
-	 * This will add a sector to some, but not all, child vdevs.
-	 */
-	r = s - q * (dcols - nparity);
-
-	/* The number of "big columns" - those which contain remainder data. */
-	bc = (r == 0 ? 0 : r + nparity);
-
-	/*
-	 * The total number of data and parity sectors associated with
-	 * this I/O.
-	 */
-	tot = s + nparity * (q + (r == 0 ? 0 : 1));
-
-	/*
-	 * acols: The columns that will be accessed.
-	 * scols: The columns that will be accessed or skipped.
-	 */
-	if (q == 0) {
-		/* Our I/O request doesn't span all child vdevs. */
-		acols = bc;
-		scols = MIN(dcols, roundup(bc, nparity + 1));
-	} else {
-		acols = dcols;
-		scols = dcols;
-	}
-
-	// Assign into info
-	info->dcols = vrt->vd_logical_width;
-	info->nparity = vrt->vd_nparity;
-	info->ashift = top->vdev_ashift;
-	info->q = q;
-	info->r = r;
-	info->bc = bc;
-	info->tot = tot;
-	info->acols = acols;
-	info->scols = scols;
-
-	// MLEC custom stuff
-	uint64_t num_stripes = q / (dcols - nparity) + (r != 0 ? 1 : 0);
-	info->num_stripes = num_stripes;
-
-	return 0;
-}
-
 static int
 zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
@@ -7747,45 +7756,6 @@ zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	int num_object = mlec_dump_objset(dsl_dataset->ds_objset, outnvl);
 	zfs_dbgmsg("mlec_dump_objset contains %ld objects", num_object);
 
-	/**
-	 * #3. Loop through all the dnode, and get the failed chunks
-	 */
-	nvpair_t *first_pair;
-	nvlist_next_nvpair(outnvl, first_pair);
-	if (first_pair != NULL) {
-		zfs_dbgmsg("nvpair contains key %s", nvpair_name(first_pair));
-	}
-
-
-	dnode_t *dnode_repair;
-	if (mlec_get_dn(spa, dsl_dataset, object_id, &dnode_repair)) {
-		return 1;
-	}
-
-	sa_handle_t *hdl;
-	dmu_buf_t *db;
-	uint64_t fsize;
-	if (mlec_get_dn_fsize(dsl_dataset, object_id, &fsize, &hdl, &db)) {
-		zfs_dbgmsg("sa_bulk_lookup failed");
-		sa_handle_destroy(hdl);
-		sa_buf_rele(db, FTAG);
-		dnode_rele(dnode_repair, FTAG);
-		dsl_dataset_rele(dsl_dataset, FTAG);
-		spa_close(spa, FTAG);
-		return 1;
-	}
-
-	// Get the raidz info
-	raidz_info_t info;
-	mlec_get_raidz_info(top, vrt, fsize, &info);
-
-
-	
-	zfs_dbgmsg("failed chunks dnode size %lld, num full stripe sectors %lld, num partial stripe sectors %lld", fsize, info.q, info.r);
-	sa_handle_destroy(hdl);
-	sa_buf_rele(db, FTAG);
-
-	dnode_rele(dnode_repair, FTAG);
 	dsl_dataset_rele(dsl_dataset, FTAG);
 	spa_close(spa, FTAG);
 
