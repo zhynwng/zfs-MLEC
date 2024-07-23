@@ -7585,6 +7585,7 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 	object = 0;
 	while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 		// Check whether dnode is a plain file
+		zfs_dbgmsg("dumping object %ld", object);
 		dnode_t *dn;
 		dnode_hold(os, object, FTAG, &dn);
 		
@@ -7644,6 +7645,7 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 			// Set that into the out nvlist
 			char index[5];
 			sprintf(index, "%d", num_object);
+			zfs_dbgmsg("Adding attributes for dnode %s to the outnvl", index);
 			nv_error += nvlist_add_nvlist(out, index, attributes);
 
 			if (nv_error) {

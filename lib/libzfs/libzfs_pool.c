@@ -2584,14 +2584,13 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 
 	// Set output size
 	// TODO: fix this excessive memory allocation
-	zc.zc_nvlist_dst_size = 10000;
+	zc.zc_nvlist_dst_size = 60000;
 	zc.zc_nvlist_dst = (uint64_t)(uintptr_t)zfs_alloc(hdl, zc.zc_nvlist_dst_size);
 
 	errno = 0;
 	errno = zfs_ioctl(hdl, ZFS_IOC_POOL_FAILED_CHUNKS, &zc);
 
 	printf("Error no %d\n", errno);
-	// Read the nvlist
 
 	nvlist_t *out;
 	nvlist_alloc(&out, NV_UNIQUE_NAME, 0);
@@ -2602,6 +2601,14 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 		printf("Error unpacking\n");
 	}
 
+	printf("Trying to loop through outnvl\n");
+	nvpair_t *pair;
+	while ((pair = nvlist_next_nvpair(out, pair)) != NULL) {
+		// Get the attributes
+		char *dnode_id_str = nvpair_name(pair);
+		uint64_t dnode_id = atoi(dnode_id_str);
+		printf("dnode %ld\n", dnode_id);
+	}
 
 	nvlist_free(input);
 	nvlist_free(out);
