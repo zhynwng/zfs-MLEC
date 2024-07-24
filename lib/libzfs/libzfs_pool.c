@@ -2560,27 +2560,28 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 	zfs_cmd_t zc;
 	libzfs_handle_t *hdl = zhp->zpool_hdl;
 
+	printf("zpool_get_failed_chunks\n");
+
 	// Copy the zc name
 	(void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
 	
-	// Configure input
-	nvlist_t *input;
-	nvlist_alloc(&input, NV_UNIQUE_NAME, 0);
-	nvlist_add_uint64(input, "objset_id", objset_id);
-	nvlist_add_uint64(input, "object_id", object_id);
+	// // Configure input
+	// nvlist_t *input;
+	// nvlist_alloc(&input, NV_UNIQUE_NAME, 0);
+	// nvlist_add_uint64(input, "objset_id", objset_id);
 
-	printf("=====\n");
-	size_t nvsz;
-	int err = nvlist_size(input, &nvsz, NV_ENCODE_NATIVE);
-	assert(err == 0);
+	// printf("=====\n");
+	// size_t nvsz;
+	// int err = nvlist_size(input, &nvsz, NV_ENCODE_NATIVE);
+	// assert(err == 0);
 
-	char *nvbuf = malloc(nvsz);
+	// char *nvbuf = malloc(nvsz);
 
-	err = nvlist_pack(input, &nvbuf, &nvsz, NV_ENCODE_NATIVE, 0);
-	assert(err == 0);
+	// err = nvlist_pack(input, &nvbuf, &nvsz, NV_ENCODE_NATIVE, 0);
+	// assert(err == 0);
 
-	zc.zc_nvlist_src_size = nvsz;
-	zc.zc_nvlist_src = (uintptr_t)nvbuf;
+	// zc.zc_nvlist_src_size = nvsz;
+	// zc.zc_nvlist_src = (uintptr_t)nvbuf;
 
 	// Set output size
 	// TODO: fix this excessive memory allocation
@@ -2601,7 +2602,6 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 		printf("Error unpacking\n");
 	}
 
-	printf("Trying to loop through outnvl\n");
 	nvpair_t *pair;
 	while ((pair = nvlist_next_nvpair(out, pair)) != NULL) {
 		// Get the attributes
@@ -2610,7 +2610,7 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 		printf("dnode %ld\n", dnode_id);
 	}
 
-	nvlist_free(input);
+	// nvlist_free(input);
 	nvlist_free(out);
 
 	return 0;

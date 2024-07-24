@@ -7731,22 +7731,18 @@ zfs_ioctl_failed_chunks(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 	
 	// Get the number of chunks, and number of stripes
 	int innvl_err = 0;
-	uint64_t objset_id;
-	innvl_err += nvlist_lookup_uint64(innvl, "objset_id", &objset_id);
-	
-	dsl_dataset_t *dsl_dataset;
-	if (mlec_get_dsl_dataset(spa, objset_id, &dsl_dataset)) {
-		return 1;
-	}
+
+	objset_t *objset;
+	dmu_objset_hold(poolname, FTAG, &objset);
 
 	/**
 	 * #2. Get all the dnode on the drive, while dumping the dnode
 	 */
-	int num_object = mlec_dump_objset(dsl_dataset->ds_objset, outnvl);
+	int num_object = mlec_dump_objset(objset, outnvl);
 	zfs_dbgmsg("mlec_dump_objset contains %ld objects", num_object);
 
 	
-	dsl_dataset_rele(dsl_dataset, FTAG);
+	dmu_objset_rele(objset, FTAG);
 	spa_close(spa, FTAG);
 
 	return 0;
@@ -7760,7 +7756,6 @@ zfs_pool_failed_chunks_sec_policy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
 }
 
 static const zfs_ioc_key_t zfs_keys_failed_chunks[] = {
-	{"objset_id", DATA_TYPE_UINT64, 0}
 };
 
 static int

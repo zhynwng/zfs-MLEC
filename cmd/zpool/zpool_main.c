@@ -7415,11 +7415,11 @@ zpool_do_get_failed_chunks(int argc, char **argv) {
 	int error;
 
 	failed_chunks_cbdata_t cb;
-	cb.objset_id = atoi(argv[2]);
-	cb.object_id = atoi(argv[3]);
+	// cb.objset_id = atoi(argv[2]);
+	// cb.object_id = atoi(argv[3]);
 
-	// Hijack, so that for each does not recognize the two following arguments
-	argc -= 2;
+	// // Hijack, so that for each does not recognize the two following arguments
+	// argc -= 2;
 
 	argc -= optind;
 	argv += optind;
