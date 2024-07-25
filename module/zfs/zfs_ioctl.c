@@ -7838,8 +7838,6 @@ zfs_mlec_receive_repair_data(const char *poolname, nvlist_t *innvl, nvlist_t *ou
 	unsigned char *retrieved_data = NULL;
 	uint_t retrieved_data_size = 0;
 
-	zfs_dbgmsg("zfs_mlec_test() called");
-
 	uint16_t innvl_err = 0;
 	innvl_err += nvlist_lookup_byte_array(innvl, "data", &retrieved_data, &retrieved_data_size);
 
@@ -7868,11 +7866,9 @@ zfs_mlec_receive_repair_data(const char *poolname, nvlist_t *innvl, nvlist_t *ou
 	// 1. Find the spa using the pool name
 	spa_t *spa;
 	spa_open(poolname, &spa, FTAG);
-	zfs_dbgmsg("spa opened for pool %s", poolname);
 
 	// 3. Find the vdev
 	vdev_t *vdev_top = vdev_lookup_top(spa, 0);
-	zfs_dbgmsg("vdev_top found");
 	zfs_dbgmsg("Found the vdev %s, number of children %lld, first child path %s",
 			   vdev_top->vdev_devid,
 			   vdev_top->vdev_children,
@@ -7886,7 +7882,6 @@ zfs_mlec_receive_repair_data(const char *poolname, nvlist_t *innvl, nvlist_t *ou
 		spa_close(spa, FTAG);
 		return 1;
 	}
-	zfs_dbgmsg("dsl_dataset opened");
 
 	// 4. Find the dnode pointing to the FILE that we want to repair
 	dnode_t *dnode_repair;
@@ -7897,11 +7892,9 @@ zfs_mlec_receive_repair_data(const char *poolname, nvlist_t *innvl, nvlist_t *ou
 		spa_close(spa, FTAG);
 		return 1;
 	}
-	zfs_dbgmsg("dnode_t opened");
 
 	// 5. Find the blkptr pointing to the ACTUAL BLOCK that we are writing the data to
 	blkptr_t blk = dnode_repair->dn_phys->dn_blkptr[blk_id];
-	zfs_dbgmsg("blkptr_t opened");
 
 	// 4. Get the binary data into abd
 	abd_t *repair_adb = abd_alloc_for_io(retrieved_data_size, B_FALSE);
