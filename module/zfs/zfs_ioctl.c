@@ -7822,7 +7822,7 @@ zfs_pool_easy_scan_sec_policy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
 static const zfs_ioc_key_t zfs_keys_easy_scan[] = {
 };
 
-static const zfs_ioc_key_t zfs_keys_mlec_test[] = {
+static const zfs_ioc_key_t zfs_keys_mlec_receive_repair_data[] = {
 	{"data", DATA_TYPE_ANY, 0},
 	{"objset_id", DATA_TYPE_UINT64, 0},
 	{"dn_object_id", DATA_TYPE_UINT64, 0},
@@ -7832,7 +7832,7 @@ static const zfs_ioc_key_t zfs_keys_mlec_test[] = {
 };
 
 static int
-zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
+zfs_mlec_receive_repair_data(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 {
 	// Retrieve the byte array from the nvlist
 	unsigned char *retrieved_data = NULL;
@@ -7937,7 +7937,7 @@ zfs_mlec_test(const char *poolname, nvlist_t *innvl, nvlist_t *outnvl)
 
 // Always return 0
 static int
-zfs_mlec_test_secpolicy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
+zfs_mlec_receive_repair_data_secpolicy(zfs_cmd_t *zc, nvlist_t *innvl, cred_t *cr)
 {
 	return 0;
 }
@@ -7955,9 +7955,9 @@ zfs_ioctl_init(void)
 	zfs_ioctl_register("easy-scrub", ZFS_IOC_POOL_EASY_SCAN,
 						zfs_ioc_pool_easy_scan, zfs_pool_easy_scan_sec_policy , NO_NAME,
 					   POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_easy_scan, ARRAY_SIZE(zfs_keys_easy_scan));
-	zfs_ioctl_register("mlec-test", ZFS_MLEC_TEST,
-					   zfs_mlec_test, zfs_mlec_test_secpolicy, NO_NAME,
-					   POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_mlec_test, ARRAY_SIZE(zfs_keys_mlec_test));
+	zfs_ioctl_register("mlec-receive-data", ZFS_MLEC_RECEIVE_DATA,
+					   zfs_mlec_receive_repair_data, zfs_mlec_receive_repair_data_secpolicy, NO_NAME,
+					   POOL_CHECK_NONE, B_FALSE, B_TRUE, zfs_keys_mlec_receive_repair_data, ARRAY_SIZE(zfs_keys_mlec_receive_repair_data));
 
 	zfs_ioctl_register("snapshot", ZFS_IOC_SNAPSHOT,
 					   zfs_ioc_snapshot, zfs_secpolicy_snapshot, POOL_NAME,

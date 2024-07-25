@@ -1648,10 +1648,9 @@ lzc_get_bootenv(const char *pool, nvlist_t **outnvl)
 * A test method for MLEC impl
 */
 int
-lzc_mlec_test(const char *pool, const nvlist_t *input) 
+lzc_mlec_receive_data(const char *pool, const nvlist_t *input) 
 {
-	printf("lzc_test() called\n");
-	return (lzc_ioctl(ZFS_MLEC_TEST, pool, input, NULL));
+	return (lzc_ioctl(ZFS_MLEC_RECEIVE_DATA, pool, input, NULL));
 }
 
 int lzc_mlec_get_failed_chunks(const char *pool, const nvlist_t *input, nvlist_t **output) {
