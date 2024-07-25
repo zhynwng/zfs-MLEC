@@ -1661,5 +1661,5 @@ int lzc_mlec_get_failed_chunks(const char *pool, const nvlist_t *input, nvlist_t
  * MLEC get all dnode
  */
 int lzc_mlec_get_all_dnode(const char *pool, const nvlist_t *input, const nvlist_t **output) {
-	
+	return (lzc_ioctl(ZFS_IOC_POOL_ALL_DNODE, pool, input, output));
 }
