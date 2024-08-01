@@ -2560,7 +2560,7 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 	zfs_cmd_t zc;
 	libzfs_handle_t *hdl = zhp->zpool_hdl;
 
-	printf("zpool_get_failed_chunks\n");
+	// printf("zpool_get_failed_chunks\n");
 
 	// Copy the zc name
 	(void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
@@ -2591,7 +2591,7 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 	errno = 0;
 	errno = zfs_ioctl(hdl, ZFS_IOC_POOL_FAILED_CHUNKS, &zc);
 
-	printf("Error no %d\n", errno);
+	// printf("Error no %d\n", errno);
 
 	nvlist_t *out;
 	nvlist_alloc(&out, NV_UNIQUE_NAME, 0);
@@ -2632,7 +2632,7 @@ zpool_get_all_dnode(zpool_handle_t *zhp) {
 	errno = 0;
 	errno = zfs_ioctl(hdl, ZFS_IOC_POOL_ALL_DNODE, &zc);
 
-	printf("Error no %d\n", errno);
+	// printf("Error no %d\n", errno);
 	// Read the nvlist
 
 	nvlist_t *out;
@@ -2686,7 +2686,7 @@ zpool_easy_scan(zpool_handle_t *zhp)
 	errno = 0;
 	errno = zfs_ioctl(hdl, ZFS_IOC_POOL_EASY_SCAN, &zc);
 
-	printf("Error no %d\n", errno);
+	// printf("Error no %d\n", errno);
 	// Read the nvlist
 
 	nvlist_t *out;
