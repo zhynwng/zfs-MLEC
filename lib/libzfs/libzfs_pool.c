@@ -2602,13 +2602,13 @@ zpool_get_failed_chunks(zpool_handle_t *zhp, int64_t objset_id, int64_t object_i
 		printf("Error unpacking\n");
 	}
 
-	nvpair_t *pair;
-	while ((pair = nvlist_next_nvpair(out, pair)) != NULL) {
-		// Get the attributes
-		char *dnode_id_str = nvpair_name(pair);
-		uint64_t dnode_id = atoi(dnode_id_str);
-		printf("dnode %ld\n", dnode_id);
-	}
+	// nvpair_t *pair;
+	// while ((pair = nvlist_next_nvpair(out, pair)) != NULL) {
+	// 	// Get the attributes
+	// 	char *dnode_id_str = nvpair_name(pair);
+	// 	uint64_t dnode_id = atoi(dnode_id_str);
+	// 	printf("dnode %ld\n", dnode_id);
+	// }
 
 	// nvlist_free(input);
 	nvlist_free(out);
