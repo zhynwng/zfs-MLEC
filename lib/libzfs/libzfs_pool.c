@@ -2653,7 +2653,7 @@ zpool_get_all_dnode(zpool_handle_t *zhp) {
 		nvpair_value_nvlist(nvp, &temp_attributes);
 		
 		int64_t objset, object, type;
-		char path[1024];
+		char *path;
 		nvlist_lookup_int64(temp_attributes, "objset", &objset);
 		nvlist_lookup_int64(temp_attributes, "object", &object);
 		nvlist_lookup_int64(temp_attributes, "type", &type);
