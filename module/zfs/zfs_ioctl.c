@@ -7592,6 +7592,7 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 		zfs_dbgmsg("dumping object %ld", object);
 		dnode_t *dn;
 		dnode_hold(os, object, FTAG, &dn);
+		zfs_dbgmsg("dnode ref count after hold in dump objset %ld", dn->dn_holds.rc_count);
 		
 		if (dn->dn_type == DMU_OT_PLAIN_FILE_CONTENTS) {
 			char path[MAXPATHLEN * 2];
@@ -7670,6 +7671,7 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 		}
 		
 		dnode_rele(dn, FTAG);
+		zfs_dbgmsg("dnode ref count after release in dump objset %ld", dn->dn_holds.rc_count);
 	}
 
 	return num_object;
