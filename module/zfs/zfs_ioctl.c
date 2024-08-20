@@ -7395,8 +7395,8 @@ static void
 mlec_close_objset(objset_t *os, void *tag, dsl_dataset_t *dsl_dataset)
 {
 	dsl_dataset_long_rele(dmu_objset_ds(os), tag);
-	dsl_dataset_rele(dsl_dataset, tag);
-	dmu_objset_rele(os, tag);
+	dsl_dataset_rele(dmu_objset_ds(os), tag);
+	// dmu_objset_rele(os, tag);
 }
 
 static int
@@ -7594,9 +7594,10 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 		dnode_hold(os, object, FTAG, &dn);
 		
 		if (dn->dn_type == DMU_OT_PLAIN_FILE_CONTENTS) {
-			char path[1024];
-			if (zfs_obj_to_path(os, object, path, sizeof(path))) {
-				zfs_dbgmsg("Error retrieving dnode path");
+			char path[MAXPATHLEN * 2];
+			int obj_to_path_error = zfs_obj_to_path(os, object, path, sizeof(path));
+			if (obj_to_path_error) {
+				zfs_dbgmsg("Error retrieving dnode path, error %ld", obj_to_path_error);
 			}
 			zfs_dbgmsg("dnode %lld:%lld, type %d, path %s", dmu_objset_id(os), object, dn->dn_type, path);
 
