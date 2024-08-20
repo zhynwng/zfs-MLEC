@@ -7383,10 +7383,10 @@ mlec_open_objset(const char *path, void *tag, objset_t **osp, dsl_dataset_t **ds
 		return (err);
 	}
 
-	// dsl_dataset_long_hold(dmu_objset_ds(*osp), tag);
-	// dsl_pool_rele(dmu_objset_pool(*osp), tag);
+	dsl_dataset_long_hold(dmu_objset_ds(*osp), tag);
+	dsl_pool_rele(dmu_objset_pool(*osp), tag);
 
-	err = dsl_dataset_hold(dmu_objset_pool(*osp), path, tag, dsl_dataset);
+	// err = dsl_dataset_hold(dmu_objset_pool(*osp), path, tag, dsl_dataset);
 
 	return (err);
 }
@@ -7394,7 +7394,7 @@ mlec_open_objset(const char *path, void *tag, objset_t **osp, dsl_dataset_t **ds
 static void
 mlec_close_objset(objset_t *os, void *tag, dsl_dataset_t *dsl_dataset)
 {
-	// dsl_dataset_long_rele(dmu_objset_ds(os), tag);
+	dsl_dataset_long_rele(dmu_objset_ds(os), tag);
 	dsl_dataset_rele(dsl_dataset, tag);
 	dmu_objset_rele(os, tag);
 }
@@ -7443,24 +7443,28 @@ mlec_zfs_grab_sa_handle(objset_t *osp, uint64_t obj, sa_handle_t **hdlp,
 
 static int mlec_get_dn_fsize(dsl_dataset_t *dsl_dataset, uint64_t object_id, uint64_t *fsize, sa_handle_t **hdl, dmu_buf_t **db) {
 	// The size come from sa attributes
-	sa_attr_type_t *sa_table;
-	int error;
+	// sa_attr_type_t *sa_table;
+	// int error;
 
-	error = mlec_zfs_sa_setup(dsl_dataset->ds_objset, &sa_table);
-	if (error != 0)
-		return (error);
+	// error = mlec_zfs_sa_setup(dsl_dataset->ds_objset, &sa_table);
+	// if (error != 0) {
+	// 	return (error);
+	// }
+		
 
-	error = mlec_zfs_grab_sa_handle(dsl_dataset->ds_objset, object_id, hdl, db, FTAG);
-	if (error != 0)
-		return (error);
+	// error = mlec_zfs_grab_sa_handle(dsl_dataset->ds_objset, object_id, hdl, db, FTAG);
+	// if (error != 0)
+	// 	return (error);
 
-	sa_bulk_attr_t bulk[12];
-	int idx = 0;
-	SA_ADD_BULK_ATTR(bulk, idx, sa_table[ZPL_SIZE], NULL, fsize, 8);
+	// sa_bulk_attr_t bulk[12];
+	// int idx = 0;
+	// SA_ADD_BULK_ATTR(bulk, idx, sa_table[ZPL_SIZE], NULL, fsize, 8);
 
-	if (sa_bulk_lookup(*hdl, bulk, idx) != 0){
-		return 1;
-	}
+	// if (sa_bulk_lookup(*hdl, bulk, idx) != 0){
+	// 	return 1;
+	// }
+
+	*fsize = 256;
 	
 	return 0;
 }
@@ -7613,25 +7617,30 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 			nv_error += nvlist_add_string(attributes, "path", path);
 			
 			// Get the fsize
-			uint64_t fsize;
-			sa_handle_t *hdl;
-			dmu_buf_t *db;
-			if (mlec_get_dn_fsize(os->os_dsl_dataset, object, &fsize, &hdl, &db)) {
-				dnode_rele(dn, FTAG);
-				sa_handle_destroy(hdl);
-				sa_buf_rele(db, FTAG);
-				return -1;
-			}
-			sa_handle_destroy(hdl);
-			sa_buf_rele(db, FTAG);
+			// uint64_t fsize;
+		// 	sa_handle_t *hdl;
+		// 	dmu_buf_t *db;
+		// 	if (mlec_get_dn_fsize(os->os_dsl_dataset, object, &fsize, &hdl, &db)) {
+		// 		// dnode_rele(dn, FTAG);
+		// 		// sa_handle_destroy(hdl);
+		// 		// sa_buf_rele(db, FTAG);
+		// 		return -1;
+		// 	}
+		// 	// sa_handle_destroy(hdl);
+		// 	// sa_buf_rele(db, FTAG);
 
-			nv_error += nvlist_add_int64(attributes, "fsize", fsize);
+			// nv_error += nvlist_add_int64(attributes, "fsize", fsize);
 
 			// Get the failure information
 			int64_t child_status[vdev->vdev_children];
 			raidz_info_t info;
-			mlec_get_raidz_info(vdev, vdev->vdev_tsd, fsize, &info);
-			zfs_get_vdev_children_status(vdev, child_status);
+
+			info.dcols = 3;
+			info.nparity = 1;
+			info.r = 0;
+
+			// mlec_get_raidz_info(vdev, vdev->vdev_tsd, fsize, &info);
+			// zfs_get_vdev_children_status(vdev, child_status);
 			
 			// Get child status
 			nv_error += nvlist_add_int64(attributes, "dcols", info.dcols);
@@ -7642,7 +7651,7 @@ mlec_dump_objset(objset_t *os, nvlist_t *out)
 			uint64_t number_of_stripes = info.q / (info.dcols - info.nparity);
 			nv_error += nvlist_add_int64(attributes, "num_stripes", number_of_stripes);
 			nv_error += nvlist_add_int64(attributes, "num_remainder_stripes", info.r == 0 ? 0 : 1);
-			zfs_dbgmsg("failed chunks dnode size %lld, num full stripe sectors %lld, num partial stripe sectors %lld", fsize, info.q, info.r);
+			// zfs_dbgmsg("failed chunks dnode size %lld, num full stripe sectors %lld, num partial stripe sectors %lld", fsize, info.q, info.r);
 
 			// Set that into the out nvlist
 			char index[5];
@@ -7691,18 +7700,6 @@ static int mlec_get_dsl_dataset(spa_t *spa, uint64_t objset_id, dsl_dataset_t **
 	if (dsl_dataset_hold_obj(spa->spa_dsl_pool, objset_id, FTAG, dsl_dataset))
 	{
 		zfs_dbgmsg("dsl_dataset open failed");
-		spa_close(spa, FTAG);
-		return 1;
-	}
-
-	return 0;
-}
-
-static int mlec_get_dn(spa_t *spa, dsl_dataset_t *dsl_dataset, uint64_t object_id, dnode_t **dnode) {
-	if (dnode_hold(dsl_dataset->ds_objset, object_id, FTAG, dnode))
-	{
-		zfs_dbgmsg("dnode_t open failed");
-		dsl_dataset_rele(dsl_dataset, FTAG);
 		spa_close(spa, FTAG);
 		return 1;
 	}

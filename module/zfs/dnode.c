@@ -1710,6 +1710,8 @@ dnode_add_ref(dnode_t *dn, void *tag)
 		mutex_exit(&dn->dn_mtx);
 		return (FALSE);
 	}
+
+	// zfs_dbgmsg("dnode ref count %d", zfs_refcount_add(&dn->dn_holds, tag));
 	VERIFY(1 < zfs_refcount_add(&dn->dn_holds, tag));
 	mutex_exit(&dn->dn_mtx);
 	return (TRUE);
