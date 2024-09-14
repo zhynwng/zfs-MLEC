@@ -1,13 +1,19 @@
 # Test script to see what's going on
 
-for i in {1..3}; do sudo truncate -s 4G /scratch/$i.img; done
+# Create zpool
+sudo zpool create pool raidz /dev/loop21 /dev/loop22 /dev/loop23
+sudo zfs set mountpoint=/mnt/zfs pool
+sudo chown -R cc:cc /mnt/zfs
 
-sudo zpool create test raidz /scratch/1.img /scratch/2.img /scratch/3.img 
-sudo dd if=/dev/zero of=/scratch/2.img bs=4M count=1 2>/dev/null
-sudo zpool scrub zpool
-sudo truncate -s 2G /scratch/new.img
-sudo zpool replace zpool /scratch/2.img /scratch/new.img
+# Write a large file and zero out disk
+time sudo dd if=/dev/urandom of=/mnt/zfs/random.bin bs=1G count=1 oflag=direct
+time sudo dd if=/dev/zero of=/dev/loop21 bs=1G count=5 oflag=direct
 
-sudo cat /proc/spl/kstat/zfs/dbgmsg > log.txt
+# limit bandwidth
+sudo ./bw_limit.sh
 
-sudo zpool destroy zpool
+# replace and time result
+sudo zpool replace pool /dev/loop21 /dev/loop24
+sudo zpool status
+
+# sudo zpool destroy pool

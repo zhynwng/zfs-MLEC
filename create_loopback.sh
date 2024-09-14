@@ -1,11 +1,9 @@
 #!/bin/bash
-size=$1
-
-for i in {1..4}; do
+for i in {1..6}; do
     # Create tmpfs
-        sudo mkdir -p /media/rdisk$i
-        sudo mount -t tmpfs -o size=${size} tmpfs /media/rdisk$i/
-        sudo truncate -s ${size} /media/rdisk$i/disk.img
+    sudo mkdir -p /media/rdisk$i
+    sudo mount -t tmpfs -o size=5G tmpfs /media/rdisk$i/
+    sudo truncate -s 5G /media/rdisk$i/disk.img
 
     # Install GPT table to the img
     cfdisk /media/rdisk$i/disk.img
